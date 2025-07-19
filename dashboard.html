@@ -1,0 +1,86 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <?!= include('style'); ?>
+  <?!= include('shared'); ?>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page">
+  <header>
+    <img id="avatar" src="https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+         onerror="this.src=this.src" />
+    <div>
+      <h1 id="fullName"></h1>
+      <h2 id="username"></h2>
+    </div>
+    <button onclick="logout()">Cerrar Sesión</button>
+  </header>
+
+  <nav class="main-menu">
+    <ul>
+    <li>
+      <i class="fas fa-user"></i> Tu perfil
+      <ul class="submenu">
+        <li><button class="btn-admin" onclick="showSection('profile')">Datos personales</button></li>
+      </ul>
+    </li>
+
+    <li>
+      <i class="fas fa-briefcase"></i> Desarrollo profesional
+      <ul class="submenu">
+        <li><button class="btn-admin" onclick="showSection('workExperience')">Experiencia laboral</button></li>
+        <li><button class="btn-admin" onclick="showSection('academic')">Formación académica</button></li>
+        <li><button class="btn-admin" onclick="showSection('caps')">Capacitaciones</button></li>
+      </ul>
+    </li>
+
+    <li>
+      <i class="fas fa-file-alt"></i> Documentos
+      <ul class="submenu">
+        <li><button class="btn-admin" onclick="showSection('personalDocs')">Personales</button></li>
+        <li><button class="btn-admin" onclick="showSection('adminDocs')">Administrativos</button></li>
+      </ul>
+    </li>
+
+    <li>
+      <i class="fas fa-calendar-alt"></i> Mantenimiento
+      <ul class="submenu">
+        <li><button class="btn-admin" onclick="irA('?page=schedule')">Programación prev.</button></li>
+        <li><button class="btn-admin" onclick="irA('?page=my-equipment')">Mis equipos</button></li>
+        <li><button class="btn-admin" onclick="irA('?page=maintenance')">Mantenimientos</button></li>
+      </ul>
+    </li>
+
+    <li class="push-right">
+      <button id="btnAdminPanel" style="display:none" onclick="goAdmin()">
+        <i class="fas fa-cog"></i> Panel Admin
+      </button>
+    </li>
+  </ul>
+  </nav>
+
+  <main>
+    <?!= include('resources'); ?>
+  </main>
+
+  <script>
+    // Guarda en una constante la URL de ejecución de tu WebApp
+    const BASE_URL = '<?= ScriptApp.getService().getUrl() ?>';
+
+    function irA(path) {
+      window.top.location.href = BASE_URL + path;
+    }
+
+    function goAdmin() {
+      irA('?page=admin');
+    }
+  </script>
+
+  <?!= include('client'); ?>
+</body>
+</html>
