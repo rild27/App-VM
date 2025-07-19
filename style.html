@@ -1,0 +1,1494 @@
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Estilos para login.html */
+body.login-page {
+    background: #87CEEB; /* Azul cielo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-container {
+    background: #fff;
+    max-width: 400px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 8px; /* Bordes redondeados para la caja */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.login-container h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #34495e;
+    text-align: left;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.login-form input {
+    width: 100%;
+    height: 2.75rem;
+    line-height: 2.75rem;
+    padding: 12px;
+    margin-bottom: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: Roboto, sans-serif; /* Tipografía moderna */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+.login-form input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
+
+.login-form button {
+    background: #007bff; /* Azul sólido */
+    color: #fff;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 6px; /* Bordes redondeados */
+    font-size: 1rem;
+    font-weight: 500;
+    font-family: Roboto, sans-serif; /* Tipografía moderna */
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    box-sizing: border-box;
+    margin-top: 0.5rem;
+}
+
+.login-form button:hover {
+    background: #0056b3; /* Azul más oscuro para hover */
+    transform: scale(1.05);
+}
+
+.login-form span#msg {
+    display: block;
+    margin-top: 10px;
+    color: #e74c3c;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 500px) {
+    .login-container {
+        padding: 20px;
+    }
+
+    .login-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .login-form input,
+    .login-form button {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Estilos para experiencia laboral */
+#workExpForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+#workExpForm .form-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#workExpForm label {
+  display: inline-block;
+  width: 150px;
+  color: #34495e;
+  font-weight: 500;
+  margin: 0;
+}
+#workExpForm input,
+#workExpForm select {
+  display: inline-block;
+  width: 50%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+#workExpForm input:focus,
+#workExpForm select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+#workExpForm button {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 1rem auto 0;
+  width: 50%;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+#workExpForm button:hover {
+  background: linear-gradient(135deg, #27ae60, #219653);
+  transform: scale(1.05);
+}
+#workExpMsg {
+  display: block;
+  margin-top: 0.5rem;
+  color: #e74c3c;
+}
+
+/* Copiado de #personalDocs y #caps */
+#workExperience table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+#workExperience th,
+#workExperience td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+#workExperience th {
+  background: #f4f6f8;
+  color: #2c3e50;
+  font-weight: 600;
+}
+#workExperience td {
+  color: #34495e;
+}
+#workExperience td a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+#workExperience td a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+
+/* === FORMULARIO FORMACIÓN ACADÉMICA === */
+#academicForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+#academicForm .form-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#academicForm label {
+  display: inline-block;
+  width: 150px;
+  color: #34495e;
+  font-weight: 500;
+  margin: 0;
+}
+#academicForm input,
+#academicForm select {
+  display: inline-block;
+  width: 50%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+#academicForm input:focus,
+#academicForm select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+#academicForm button {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 1rem auto 0;
+  width: 50%;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+#academicForm button:hover {
+  background: linear-gradient(135deg, #27ae60, #219653);
+  transform: scale(1.05);
+}
+#acade​micMsg {
+  display: block;
+  margin-top: 0.5rem;
+  color: #e74c3c;
+}
+
+/* === TABLA FORMACIÓN ACADÉMICA === */
+#academicTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+#academicTable th,
+#academicTable td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+#academicTable th {
+  background: #f4f6f8;
+  color: #2c3e50;
+  font-weight: 600;
+}
+#academicTable td {
+  color: #34495e;
+}
+#academicTable td a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+#academicTable td a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+
+
+/* Estilos para dashboard.html */
+header {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header #avatar {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid white;
+  transition: transform 0.3s ease;
+}
+
+header #avatar.loaded {
+    transform: scale(1.05);
+}
+
+header h1, header h2 {
+    font-weight: 500;
+}
+
+header h2 {
+    font-size: 1rem;
+    opacity: 0.8;
+    display:none;
+}
+
+header button {
+    margin-left: auto;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+header button:hover {
+    background: #c0392b;
+}
+
+nav {
+    background: #fff;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+nav button {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #3498db;
+    cursor: pointer;
+    transition: color 0.3s ease, background 0.3s ease;
+}
+
+nav button:hover {
+    background: #e8f0fe;
+    border-radius: 4px;
+}
+
+#profile {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+#profile:hover {
+    transform: translateY(-4px);
+}
+
+#profile h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+#profileDisplay {
+    margin-bottom: 1rem;
+    display: block !important;
+}
+
+#profileDisplay p {
+    margin: 0.5rem 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+#profileDisplay strong {
+    color: #34495e;
+    min-width: 200px;
+}
+
+#editButton {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease, transform 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+#editButton:hover {
+    background: linear-gradient(135deg, #2980b9, #1f618d);
+    transform: scale(1.05);
+}
+
+#editForm, #imageFormSection {
+    margin-top: 1rem;
+}
+
+#editForm label, #imageFormSection label {
+    display: block;
+    margin: 0.5rem 0 0.2rem;
+    color: #34495e;
+    font-weight: 500;
+}
+
+#editForm input, #imageFormSection input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#editForm input:focus, #imageFormSection input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+#editForm button, #imageFormSection button {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 0.5rem 0.5rem 0 0;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#editForm button:hover, #imageFormSection button:hover {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    transform: scale(1.05);
+}
+
+#editForm button:last-of-type, #imageFormSection button:last-of-type {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+#editForm button:last-of-type:hover, #imageFormSection button:last-of-type:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
+#profileMsg, #imageMsg {
+    display: block;
+    margin-top: 0.5rem;
+    color: #e74c3c;
+}
+
+#caps {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+#caps:hover {
+    transform: translateY(-4px);
+}
+
+#caps h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+#uploadForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#uploadForm .form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#uploadForm label {
+    display: inline-block;
+    width: 150px;
+    color: #34495e;
+    font-weight: 500;
+    margin: 0;
+}
+
+#uploadForm input,
+#uploadForm select {
+    display: inline-block;
+    width: 50%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#uploadForm input:focus,
+#uploadForm select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+#uploadForm button {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 1rem auto 0;
+    width: 50%;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#uploadForm button:hover {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    transform: scale(1.05);
+}
+
+#uploadMsg {
+    display: block;
+    margin-top: 0.5rem;
+    color: #e74c3c;
+}
+
+#caps table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#caps th,
+#caps td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#caps th {
+    background: #f4f6f8;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+#caps td {
+    color: #34495e;
+}
+
+#caps td a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+#caps td a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+#personalDocs {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+#personalDocs:hover {
+    transform: translateY(-4px);
+}
+
+#personalDocs h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+#personalDocForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#personalDocForm .form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#personalDocForm label {
+    display: inline-block;
+    width: 150px;
+    color: #34495e;
+    font-weight: 500;
+    margin: 0;
+}
+
+#personalDocForm input {
+    display: inline-block;
+    width: 50%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#personalDocForm input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+#personalDocForm button {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 1rem auto 0;
+    width: 50%;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#personalDocForm button:hover {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    transform: scale(1.05);
+}
+
+#personalDocMsg {
+    display: block;
+    margin-top: 0.5rem;
+    color: #e74c3c;
+}
+
+#personalDocs table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#personalDocs th,
+#personalDocs td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#personalDocs th {
+    background: #f4f6f8;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+#personalDocs td {
+    color: #34495e;
+}
+
+#personalDocs td a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+#personalDocs td a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    body.login-page {
+        padding: 10px;
+    }
+
+    .login-container {
+        padding: 20px;
+    }
+
+    .login-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .login-form input,
+    .login-form button {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    header button {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+
+    nav {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    nav button {
+        padding: 0.75rem;
+    }
+
+    #profile,
+    #caps,
+    #personalDocs {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    #profileDisplay strong {
+        min-width: 150px;
+    }
+
+    #uploadForm,
+    #personalDocForm {
+        flex-direction: column;
+        max-width: 100%;
+    }
+
+    #uploadForm .form-group,
+    #personalDocForm .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #uploadForm label,
+    #personalDocForm label {
+        width: 100%;
+    }
+
+    #uploadForm input,
+    #uploadForm select,
+    #personalDocForm input {
+        width: 100%;
+    }
+
+    #uploadForm button,
+    #personalDocForm button {
+        width: 50%;
+        margin: 1rem auto 0;
+    }
+
+    #uploadMsg,
+    #personalDocMsg {
+        width: 100%;
+    }
+}
+
+/* Estilo para la tabla de usuarios en el panel Admin */
+#adminUsersTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+#adminUsersTable th,
+#adminUsersTable td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+#adminUsersTable th {
+  background: #f4f6f8;
+  color: #2c3e50;
+  font-weight: 600;
+}
+#adminUsersTable td {
+  color: #34495e;
+}
+#adminUsersTable button {
+  background: none;
+  border: none;
+  color: #3498db;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+}
+#adminUsersTable button:hover {
+  color: #2980b9;
+}
+
+/* ====== Modal para Crear Usuario ====== */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;            /* ← aquí */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.form-inline input,
+.form-inline select {
+  flex: 1 1 calc(50% - 1rem);
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.form-inline button {
+  padding: 0.5rem 1rem;
+  background: #4E60FF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.form-inline button:hover {
+  background: #6D79FF;
+}
+
+/* Toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+.switch input {
+  display: none;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #ccc;
+  transition: .4s;
+  border-radius: 20px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+.switch input:checked + .slider {
+  background: #4E60FF;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Botones de acción (editar perfil, cambiar contraseña, etc.) */
+.btn-action {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+.btn-action:hover {
+  background: linear-gradient(135deg, #2980b9, #1f618d);
+  transform: scale(1.05);
+}
+
+
+.btn-action {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-action:hover {
+  background: linear-gradient(135deg, #2980b9, #1f618d);
+}
+.btn-action--cancel {
+  background: #e74c3c;
+}
+.btn-action--cancel:hover {
+  background: #c0392b;
+}
+
+
+#editButton {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  /* … */
+}
+
+#editForm button, #imageFormSection button {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  /* … */
+}
+
+.btn-action {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-action:hover {
+  background: linear-gradient(135deg, #27ae60, #219653);
+  transform: scale(1.05);
+}
+
+
+/* Botón azul (igual que “Editar Perfil”) */
+.btn-primary {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2980b9, #1f618d);
+  transform: scale(1.05);
+}
+
+/* Botón verde (igual que “Guardar Cambios”) */
+.btn-success {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-success:hover {
+  background: linear-gradient(135deg, #27ae60, #219653);
+  transform: scale(1.05);
+}
+
+/* === SELECT ESTILO CAPACITACIONES PARA DOCUMENTOS PERSONALES === */
+#personalDocForm select {
+    display: inline-block;
+    width: 50%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+#personalDocForm select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+
+/* Botón de “Actualizar” */
+.btn-update {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-update:hover {
+  background: linear-gradient(135deg, #2980b9, #2471a3);
+  transform: scale(1.03);
+}
+
+.btn-update:active {
+  transform: scale(0.98);
+}
+
+.btn-cancel {
+  background: #eee;
+  color: #555;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-cancel:hover {
+  background: #ddd;
+}
+
+
+/* CSS para menú*/
+/* 1) Contenedor principal */
+.main-menu {
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.main-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;               /* horizontal */
+  align-items: center;
+}
+.main-menu > ul > li {
+  position: relative;          /* para el submenu absolute */
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.main-menu > ul > li:hover {
+  background: #f5f5f5;
+}
+
+/* 2) Sub-menú oculto por defecto */
+.main-menu .submenu {
+  position: absolute;
+  top: 100%;                    /* justo debajo */
+  left: 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 4px;
+  display: none;                /* oculto */
+  z-index: 1000;                /* por encima de todo */
+}
+.main-menu li:hover > .submenu {
+  display: block;               /* muestra al hacer hover */
+}
+
+/* 3) Items del submenú */
+.main-menu .submenu li {
+  padding: 0.5rem 1rem;
+}
+.main-menu .submenu li:hover {
+  background: #eee;
+}
+
+/* 4) Botones dentro del menú */
+.main-menu button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* 5) Ajustes de iconos */
+.main-menu i {
+  margin-right: 0.5rem;
+}
+
+/* 6) Responsive: si cabe, se convierte en columna */
+@media (max-width: 600px) {
+  .main-menu ul {
+    flex-direction: column;
+  }
+  .main-menu > ul > li {
+    width: 100%;
+  }
+}
+
+/* Sección Administrativos (idéntica a Personal) */
+#adminDocs {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+#adminDocs:hover {
+    transform: translateY(-4px);
+}
+#adminDocs h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+/* Formulario Administrativos */
+#adminDocForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#adminDocForm .form-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+#adminDocForm label {
+    display: inline-block;
+    width: 150px;
+    color: #34495e;
+    font-weight: 500;
+    margin: 0;
+}
+#adminDocForm input,
+#adminDocForm select {
+    display: inline-block;
+    width: 50%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+#adminDocForm input:focus,
+#adminDocForm select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+#adminDocForm button {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 1rem auto 0;
+    width: 50%;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+#adminDocForm button:hover {
+    background: linear-gradient(135deg, #27ae60, #219653);
+    transform: scale(1.05);
+}
+#adminDocMsg {
+    display: block;
+    margin-top: 0.5rem;
+    color: #e74c3c;
+}
+
+/* Tabla Administrativos */
+#adminDocsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+#adminDocsTable th,
+#adminDocsTable td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+#adminDocsTable th {
+    background: #f4f6f8;
+    color: #2c3e50;
+    font-weight: 600;
+}
+#adminDocsTable td {
+    color: #34495e;
+}
+#adminDocsTable td a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+#adminDocsTable td a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+#adminDocForm button {
+  display: block;               /* para que la margin auto funcione */
+  width: 50%;                   /* misma anchura que en personales */
+  margin: 1rem auto 0;          /* centrado horizontal */
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+#adminDocForm button:hover {
+  background: linear-gradient(135deg, #27ae60, #219653);
+  transform: scale(1.05);
+}
+
+/* Botón administrativo genérico */
+.btn-admin {
+  display: inline-block;
+  margin-bottom: 1rem;        /* igual que el inline antes */
+  background: #4E60FF;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-admin:hover {
+  background: #3B4FD1;
+}
+
+form#createUserForm select[name="role"] {
+  padding: 0.75rem 1rem;
+  height: 2.75rem;  /* misma altura que tus inputs */
+}
+
+
+/* En el modal de Crear Área, que todos los campos ocupen ancho completo */
+#modalCreateArea .modal-content form#createAreaForm input,
+#modalCreateArea .modal-content form#createAreaForm textarea,
+#modalCreateArea .modal-content form#createAreaForm select {
+  width: 100%;
+  box-sizing: border-box;    /* para que padding no rompa el ancho */
+  margin-bottom: 0.75rem;     /* espacio entre campos */
+  padding: 0.75rem;           /* mismo padding que tus otros forms */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+
+/* En el modal de Nuevo Equipo, que todos los campos ocupen ancho completo */
+#modalEquipment .modal-content form#equipmentForm input,
+#modalEquipment .modal-content form#equipmentForm select {
+  width: 100%;
+  box-sizing: border-box;    /* para que padding no rompa el ancho */
+  margin-bottom: 0.75rem;     /* espacio entre campos */
+  padding: 0.75rem;           /* alinea con los otros forms */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+
+/* Estilo igual que #adminUsersTable para #areasTable */
+#areasTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+#areasTable th,
+#areasTable td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+#areasTable th {
+  background: #f4f6f8;
+  color: #2c3e50;
+  font-weight: 600;
+}
+#areasTable td {
+  color: #34495e;
+}
+/* Si quieres botones edición/borrar iguales */
+#areasTable button {
+  background: none;
+  border: none;
+  color: #3498db;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+}
+#areasTable button:hover {
+  color: #2980b9;
+}
+
+
+/* Estilo igual que #adminUsersTable para #userAreasTable */
+#userAreasTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+#userAreasTable th,
+#userAreasTable td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+#userAreasTable th {
+  background: #f4f6f8;
+  color: #2c3e50;
+  font-weight: 600;
+}
+#userAreasTable td {
+  color: #34495e;
+}
+/* Botones de acción dentro de la tabla */
+#userAreasTable button {
+  background: none;
+  border: none;
+  color: #3498db;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  text-decoration: underline;
+}
+#userAreasTable button:hover {
+  color: #2980b9;
+}
+
+
+/* === Tablas de administración (Usuarios, Áreas, U–Áreas, Equipos) === */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-table th {
+  background: #f4f6f8;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.admin-table td {
+  color: #34495e;
+}
+
+/* Antes: afectaba a *todos* los ul>li>button */
+/*
+.main-menu ul li button { … }
+*/
+
+/* Después: SOLO a los botones dentro de .main-menu */
+.main-menu ul li button {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  color: #3498db;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+.main-menu ul li button:hover {
+  color: #4E60FF;
+  background: none;
+}
+
+
+/* Restauro el estilo “btn-admin” en el nav de admin */
+.admin-nav button {
+  background: #4E60FF;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.admin-nav button:hover {
+  background: #3B4FD1;
+}
+
+
+  /* 1) Ya debe existir .main-menu ul { display:flex; } */
+/* 2) Empuja el último <li> al extremo derecho */
+.main-menu .push-right {
+  margin-left: auto;
+}
+
+/* 3) Alinea verticalmente los botones y quita fondo azul */
+.main-menu ul li button {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  color: #3498db;          /* mismo color que tus links */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+/* 4) Hover uniforme sin fondo */
+.main-menu ul li button:hover {
+  color: #4E60FF;
+  background: none;
+}
+
+</style>
