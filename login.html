@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Inyecta tu CSS -->
+  <?!= include('style'); ?>
+
+  <!-- Meta viewport y scripts globales -->
+  <?!= include('shared'); ?>
+  
+  <base target="_top">
+  <title>Ingreso</title>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <h1>Iniciar Sesión</h1>
+    <form id="loginForm" class="login-form" onsubmit="event.preventDefault(); login();">
+      <label for="username">Usuario</label>
+      <input type="text" id="username" name="username" required>
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" name="password" required>
+      <button type="submit">Ingresar</button>
+    </form>
+    <span id="msg" style="color:#e74c3c; display:block; margin-top:0.5rem;"></span>
+  </div>
+  <script>
+    function login() {
+      const form = document.getElementById('loginForm');
+      const data = Object.fromEntries(new FormData(form));
+      document.getElementById('msg').innerText = '';
+      form.querySelector('button').disabled = true;
+      google.script.run
+        .withSuccessHandler(res => {
+          form.querySelector('button').disabled = false;
+          if (res.success) {
+            sessionStorage.setItem('currentUser', JSON.stringify(res.user));
+            window.top.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=dashboard';
+          } else {
+            document.getElementById('msg').innerText = res.message;
+          }
+        })
+        .withFailureHandler(err => {
+          form.querySelector('button').disabled = false;
+          document.getElementById('msg').innerText = 'Error de comunicación';
+        })
+        .processLogin(data);
+    }
+  </script>
+</body>
+</html>
