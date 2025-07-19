@@ -1,0 +1,30 @@
+<section id="userAreas">
+  <h2>Asignación Usuario–Área</h2>
+  <form onsubmit="event.preventDefault(); assignUA();">
+    <input name="username" placeholder="Usuario">
+    <input name="areaId" placeholder="Area ID">
+    <button>Asignar</button>
+  </form>
+  <table id="uaTable"><thead><tr><th>Usuario</th><th>AreaID</th><th>Acciones</th></tr></thead><tbody></tbody></table>
+</section>
+<script>
+  function loadUA(){
+    google.script.run.withSuccessHandler(data=>{
+      const b=document.querySelector('#uaTable tbody'); b.innerHTML='';
+      data.forEach(r=>{
+        b.insertAdjacentHTML('beforeend', `
+          <tr><td>${r.username}</td><td>${r.areaId}</td>
+            <td><button onclick="removeUA('${r.username}','${r.areaId}')">Quitar</button></td>
+          </tr>`);
+      });
+    }).getUserAreas();
+  }
+  function assignUA(){
+    const f=Object.fromEntries(new FormData(document.querySelector('#userAreas form')));
+    google.script.run.withSuccessHandler(loadUA).assignUserArea(f);
+  }
+  function removeUA(u,a){
+    google.script.run.withSuccessHandler(loadUA).removeUserArea({username:u,areaId:a});
+  }
+  document.addEventListener('DOMContentLoaded', loadUA);
+</script>
