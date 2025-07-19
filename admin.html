@@ -1,0 +1,768 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin</title>
+  <?!= include('style'); ?>     <!-- Tus estilos CSS -->
+  <?!= include('shared'); ?>    <!-- Cualquier JS/CSS compartido -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <h1>Panel de Administración</h1>
+    <button onclick="logout()">Cerrar Sesión</button>
+  </header>
+
+  <script>
+    const BASE_URL = '<?= ScriptApp.getService().getUrl() ?>';
+
+    function irA(path) {
+      window.top.location.href = BASE_URL + path;
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      irA('?page=login');
+    }
+
+    /** Muestra una sola sección admin-view y lanza la carga de datos **/
+    function showAdminSection(id) {
+      document.querySelectorAll('.admin-view').forEach(sec => {
+        sec.style.display = (sec.id === id ? 'block' : 'none');
+      });
+      switch(id) {
+        case 'dashboard':
+          loadAdminUsers();
+          break;
+        case 'areas':
+          loadAreas();
+          break;
+        case 'user-areas':
+          loadUserAreas();
+          break;
+        case 'equipment':
+          loadEquipment();
+          break;
+        // caso 'schedule' si añades esa sección después...
+      }
+    }
+  </script>
+
+  <nav class="admin-nav">
+    <!-- Vuelve al dashboard de usuario -->
+    <button onclick="irA('?page=dashboard')">
+      <i class="fas fa-home"></i> Dashboard
+    </button>
+
+    <!-- Usuarios en el panel admin -->
+    <button onclick="showAdminSection('dashboard')">
+      <i class="fas fa-users"></i> Usuarios
+    </button>
+
+    <!-- Áreas -->
+    <button onclick="showAdminSection('areas')">
+      <i class="fas fa-layer-group"></i> Áreas
+    </button>
+
+    <!-- Asignación Usuario–Áreas -->
+    <button onclick="showAdminSection('user-areas')">
+      <i class="fas fa-user-tag"></i> Asignación U–Áreas
+    </button>
+
+    <!-- Equipos -->
+    <button onclick="showAdminSection('equipment')">
+      <i class="fas fa-cogs"></i> Equipos
+    </button>
+
+    <!-- Logout -->
+    <button style="margin-left:auto" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+    </button>
+  </nav>
+
+  <main style="padding:2rem;"> 
+
+  <!-- ÁREAS -->
+  <section id="areas" class="admin-view" style="display:none">
+    <h3>Áreas</h3>
+    <button onclick="toggleCreateAreaModal()" class="btn-admin">
+      + Crear Área
+    </button>
+    <table id="areasTable" class="admin-table">
+      <!-- se rellena dinámicamente -->
+    </table>
+  </section>
+
+  <!-- ASIGNACIÓN USUARIO–ÁREAS -->
+  <section id="user-areas" class="admin-view" style="display:none">
+    <h3>Asignación Usuario–Áreas</h3>
+    <button onclick="toggleAssignUserAreaModal()" class="btn-admin">
+      + Asignar Usuario
+    </button>
+    <table id="userAreasTable" class="admin-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Área</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Se rellenará dinámicamente por loadUserAreas() -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- EQUIPOS -->
+  <section id="equipment" class="admin-view" style="display:none">
+    <h3>Equipos</h3>
+    <button onclick="toggleEquipmentModal()" class="btn-admin">
+      + Agregar Equipo
+    </button>
+    <table id="equipmentTable" class="admin-table">
+      <!-- se rellena dinámicamente -->
+    </table>
+  </section>
+
+     <section id="dashboard" class="admin-view">
+    <h3>Lista de Usuarios</h3>
+    <button
+      onclick="toggleCreateModal()"
+      style="margin-bottom:1rem;
+             background:#4E60FF;
+             color:#fff;
+             padding:0.5rem 1rem;
+             border:none;
+             border-radius:4px;">
+      + Crear Usuario
+    </button>
+
+    <table id="adminUsersTable" class="admin-table">
+      <!-- Se rellena dinámicamente -->
+    </table>
+    </section>
+
+    <section id="adminUserDetail" style="margin-top:2rem;"></section>
+
+
+    <section id="adminDocs" style="display:none">
+        <h3>Documentos Administrativos</h3>
+        <form id="adminDocForm">
+          <input type="hidden" name="username">
+          <div class="form-group">
+            <label>Nombre del documento:</label>
+            <select name="documentName" required>
+              <option value="" disabled selected>Selecciona un documento</option>
+              <option value="Carta de autorización">Carta de autorización</option>
+              <option value="Perfil de puesto">Perfil de puesto</option>
+              <option value="Carta de confidencialidad">Carta de confidencialidad</option>
+              <option value="Nombramiento">Nombramiento</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Archivo:</label>
+            <input type="file" name="file" accept=".pdf,.jpg,.png" required>
+          </div>
+          <!-- aquí cambiamos la llamada -->
+          <button type="button" onclick="uploadAdminDoc()">Subir Documento</button>
+          <span id="adminDocMsg" style="display:block; margin-top:0.5rem;"></span>
+        </form>
+        <hr>
+        <h4>Registros Actuales</h4>
+        <table id="adminDocsTable"></table>
+      </section>
+
+  </main>
+
+  <!-- === MODAL DE CREAR USUARIO === -->
+<!-- Modal Crear Usuario -->
+<div id="modalCreateUser" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="toggleCreateModal()">&times;</span>
+    <h3>Crear nueva cuenta</h3>
+    <form id="createUserForm" class="form-inline">
+      <input name="username" required placeholder="Usuario"><br>
+      <input name="password" type="password" required placeholder="Password"><br>
+      <input name="fullName" placeholder="Nombre completo"><br>
+      <input name="email" type="email" placeholder="Email"><br>
+
+      <!-- NUEVO CAMPO Fecha de Ingreso -->
+      <label for="hireDate" style="width:100%; text-align:left; margin-top:0.5rem;">Fecha de Ingreso:</label><br>
+      <input name="hireDate" type="date" required style="width:100%; margin-bottom:0.5rem;"><br>
+
+      <select name="position" id="selPosition" required>
+        <option value="" disabled selected>Cargando puestos…</option>
+      </select><br>
+
+      <select name="workCenter" id="selWorkCenter" required>
+        <option value="" disabled selected>Cargando centros…</option>
+      </select><br>
+
+      <select name="role" placeholder="Tipo de acceso">
+        <option value="user">Usuario</option>
+        <option value="admin">Admin</option>
+      </select><br>
+
+      <button type="button" class="btn-admin" onclick="uploadNewUser()">
+        Crear
+      </button>
+      <span id="createUserMsg"></span>
+    </form>
+      </div>
+    </div>
+
+
+<!-- === MODAL DE CREAR ÁREA === -->
+  <div id="modalCreateArea" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="toggleCreateAreaModal()">&times;</span>
+      <h3>Crear Nueva Área</h3>
+      <form id="createAreaForm" class="form-inline">
+        <input name="name" required placeholder="Nombre de Área"><br>
+        <input name="type" required placeholder="Tipo"><br>
+        <textarea name="description" placeholder="Descripción"></textarea><br>
+        <button type="button" class="btn-admin" onclick="createArea()">Crear Área</button>
+        <span id="createAreaMsg"></span>
+      </form>
+    </div>
+  </div>
+
+  <!-- === FIN MODAL ÁREA === -->
+
+
+ <!-- === MODAL DE ASIGNACIÓN USUARIO–ÁREAS === -->
+  <div id="modalAssignUserArea" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="toggleAssignUserAreaModal()">&times;</span>
+      <h3>Asignar Usuario a Área</h3>
+      <form id="assignUserAreaForm" class="form-inline">
+        <select name="username" id="selAssignUser" required style="width:100%;margin-bottom:0.5rem;">
+          <option value="" disabled selected>Cargando usuarios…</option>
+        </select><br>
+        <select name="areaId" id="selAssignArea" required style="width:100%;margin-bottom:0.5rem;">
+          <option value="" disabled selected>Cargando áreas…</option>
+        </select><br>
+        <button type="button" class="btn-admin" onclick="assignUserArea()">Asignar</button>
+        <span id="assignUserAreaMsg" style="display:block;margin-top:0.5rem;"></span>
+      </form>
+    </div>
+  </div>
+  <!-- === FIN MODAL ASIGNACIÓN === -->
+
+
+<!-- === MODAL DE CREAR/EDITAR EQUIPO === -->
+  <div id="modalEquipment" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="toggleEquipmentModal()">&times;</span>
+      <h3 id="equipmentModalTitle">Nuevo Equipo</h3>
+      <form id="equipmentForm" class="form-inline">
+        <input type="hidden" name="id" id="eqId">
+        <div class="form-group">
+        <input type="text" name="name" id="eqName" required placeholder="Nombre del equipo"><br>
+        </div>
+        <div class="form-group">
+        <input type="text" name="category" id="eqCategory" required placeholder="Categoría"><br>
+        </div>
+        <div class="form-group">
+        <input type="text" name="location" id="eqLocation" required placeholder="Ubicación"><br>
+        </div>
+        <div class="form-group">
+        <select name="status" id="eqStatus" required placeholder="Estado">
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select><br>
+        </div>
+        <div class="form-group">
+        <input type="date" name="acquiredDate" id="eqDate" required placeholder="Fecha de adquisición"><br>
+        </div>
+        <button type="button" class="btn-admin" onclick="saveEquipment()">Guardar</button>
+        <span id="equipmentMsg" style="display:block;margin-top:0.5rem;"></span>
+      </form>
+    </div>
+  </div>
+  <!-- === FIN MODAL EQUIPO === -->
+
+  <script>
+    // 1) Validar admin
+    let currentUser = sessionStorage.getItem('currentUser');
+    if (!currentUser) {
+      window.location.href = '<?= ScriptApp.getService().getUrl() ?>';
+    }
+    currentUser = JSON.parse(currentUser);
+    if (currentUser.role !== 'admin') {
+      alert('No tienes permisos de administrador');
+      window.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=dashboard';
+    }
+
+    // 3) Toggle modal
+    function toggleCreateModal() {
+      const m = document.getElementById('modalCreateUser');
+      if (m.style.display === 'flex') {
+        m.style.display = 'none';
+      } else {
+        populateCreateLists();
+        m.style.display = 'flex';
+      }
+    }
+
+    // 4) Cargar lista de usuarios con spinner
+    function loadAdminUsers() {
+      const tbl = document.getElementById('adminUsersTable');
+      tbl.innerHTML = `
+        <thead><tr>
+          <th colspan="6" style="text-align:center;padding:1rem;color:#666;">
+            <span class="spinner"></span> Cargando usuarios…
+          </th>
+        </tr></thead>`;
+      google.script.run
+        .withSuccessHandler(users => {
+          let html = `<thead><tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
+                      </tr></thead><tbody>`;
+          users.forEach(u => {
+            html += `<tr>
+                       <td>${u.username}</td>
+                       <td>${u.fullName}</td>
+                       <td>${u.email||''}</td>
+                       <td>${u.role}</td>
+                       <td>
+                         <label class="switch">
+                           <input type="checkbox" ${u.enabled?'checked':''}
+                             onchange="setUserEnabled('${u.username}', this.checked)">
+                           <span class="slider"></span>
+                         </label>
+                       </td>
+                       <td>
+                         <button onclick="viewUser('${u.username}')">
+                           Ver
+                         </button>
+                       </td>
+                     </tr>`;
+          });
+          html += '</tbody>';
+          tbl.innerHTML = html;
+        })
+        .withFailureHandler(err => {
+          tbl.innerHTML = `
+            <thead><tr>
+              <th colspan="6" style="text-align:center;padding:1rem;color:red;">
+                Error al cargar usuarios: ${err.message}
+              </th>
+            </tr></thead>`;
+        })
+        .getAllUsers();
+    }
+
+    // 5) Ver detalle
+    function viewUser(username) {
+  console.log('viewUser disparado con:', username);
+  google.script.run
+    .withSuccessHandler(user => {
+      if (!user) {
+        alert('Usuario no encontrado: ' + username);
+        return;
+      }
+      // guardamos admin original y navegamos
+      sessionStorage.setItem('originalUser', sessionStorage.getItem('currentUser'));
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+      window.top.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=dashboard';
+    })
+    .withFailureHandler(err => {
+      console.error('ERROR al llamar getUserProfile:', err);
+      alert('Error al cargar usuario');
+    })
+    .getUserProfile(username);
+}
+
+    // 6) Impersonar
+    function impersonateUser(username) {
+      const orig = sessionStorage.getItem('currentUser');
+      if (orig) sessionStorage.setItem('originalUser', orig);
+      google.script.run.withSuccessHandler(u=>{
+        sessionStorage.setItem('currentUser', JSON.stringify(u));
+        window.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=dashboard';
+      }).getUserProfile(username);
+    }
+
+    // 7) Crear usuario
+    function uploadNewUser() {
+  const form = document.getElementById('createUserForm');
+  const msg  = document.getElementById('createUserMsg');
+
+  // 1) Validar que todos los campos requeridos tengan valor
+  if (
+    !form.username.value.trim() ||
+    !form.password.value.trim() ||
+    !form.fullName.value.trim() ||
+    !form.email.value.trim() ||
+    !form.hireDate.value ||               // <-- agregamos hireDate
+    !form.selPosition.value ||
+    !form.selWorkCenter.value
+  ) {
+    msg.style.color = '#e74c3c';
+    msg.innerText = 'Por favor completa todos los campos obligatorios.';
+    return;
+  }
+
+  // 2) Continuar con la creación
+  msg.style.color = '#333';
+  msg.innerText = 'Creando…';
+
+  // Serializamos TODO el formulario, incluyendo hireDate
+  const payload = Object.fromEntries(new FormData(form));
+
+  google.script.run
+    .withSuccessHandler(res => {
+      msg.style.color = res.success ? 'green' : '#e74c3c';
+      msg.innerText   = res.success
+        ? '¡Usuario creado!'
+        : 'Error: ' + res.message;
+
+      if (res.success) {
+        form.reset();
+        toggleCreateModal();
+        loadAdminUsers();
+      }
+    })
+    .withFailureHandler(err => {
+      msg.style.color = '#e74c3c';
+      msg.innerText   = 'Comunicación fallida: ' + err.message;
+    })
+    .createUser(payload);
+}
+
+    // 8) Activar/desactivar
+    function setUserEnabled(username, enabled) {
+      google.script.run
+        .withSuccessHandler(res=>{
+          if (!res.success) alert('Error: '+res.message);
+        })
+        .withFailureHandler(err=>{
+          alert('Comunicación fallida: '+err.message);
+        })
+        .toggleUserEnabled({username,enabled});
+    }
+
+    // 9) Populate lookups
+    function populateCreateLists() {
+      google.script.run.withSuccessHandler(arr=>{
+        const sel = document.getElementById('selPosition');
+        sel.innerHTML = '<option disabled>Selecciona puesto</option>' +
+                        arr.map(x=>`<option>${x}</option>`).join('');
+      }).getPositions();
+      google.script.run.withSuccessHandler(arr=>{
+        const sel = document.getElementById('selWorkCenter');
+        sel.innerHTML = '<option disabled>Selecciona centro</option>' +
+                        arr.map(x=>`<option>${x}</option>`).join('');
+      }).getWorkCenters();
+    }
+
+    // Al cargar:
+    document.addEventListener('DOMContentLoaded', ()=>{
+      loadAdminUsers();
+    });
+
+
+    // función para mostrar sólo una sección y ocultar las demás
+    /*function showAdminSection(id) {
+      document.querySelectorAll('.admin-view').forEach(sec => {
+        sec.style.display = sec.id === id ? 'block' : 'none';
+      });
+    }*/
+
+    /** Muestra una sola sección y lanza la carga de datos **/
+    function showAdminSection(id) {
+      document.querySelectorAll('.admin-view').forEach(sec => {
+        sec.style.display = (sec.id === id ? 'block' : 'none');
+      });
+      switch(id) {
+        case 'dashboard':    loadAdminUsers();  break;
+        case 'areas':        loadAreas();       break;
+        case 'user-areas':   loadUserAreas();   break;  // ← aquí
+        case 'equipment':    loadEquipment();   break;
+      }
+    }
+
+// —————— Modales Áreas ——————
+    function toggleCreateAreaModal() {
+      const m = document.getElementById('modalCreateArea');
+      m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function loadAreas() {
+      const tbl = document.getElementById('areasTable');
+      tbl.innerHTML = `
+        <thead>
+          <tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="4"><span class="spinner"></span> Cargando…</td></tr>
+        </tbody>`;
+      google.script.run
+        .withSuccessHandler(areas => {
+          let rows = areas.map(a =>
+            `<tr>
+               <td>${a.name}</td>
+               <td>${a.type}</td>
+               <td>${a.description}</td>
+               <td>
+                 <button onclick="editArea('${a.id}')">✎</button>
+                 <button onclick="deleteArea('${a.id}')">🗑</button>
+               </td>
+             </tr>`
+          ).join('');
+          tbl.querySelector('tbody').innerHTML = rows || `<tr><td colspan="4">No hay áreas.</td></tr>`;
+        })
+        .withFailureHandler(e=> {
+          tbl.querySelector('tbody').innerHTML =
+            `<tr><td colspan="4" style="color:red">${e.message}</td></tr>`;
+        })
+        .getAllAreas();
+    }
+
+    function createArea() {
+      const form = document.getElementById('createAreaForm');
+      const data = Object.fromEntries(new FormData(form));
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            document.getElementById('createAreaMsg').innerText = '¡Área creada!';
+            form.reset();
+            loadAreas();
+            setTimeout(toggleCreateAreaModal, 1000);
+          } else {
+            document.getElementById('createAreaMsg').innerText = res.message;
+          }
+        })
+        .withFailureHandler(err => {
+          document.getElementById('createAreaMsg').innerText = err.message;
+        })
+        .addArea(data);
+    }
+
+    // Cada vez que el usuario hace click en “Áreas” en el nav:
+    document.querySelector("button[onclick=\"showAdminSection('areas')\"]")
+      .addEventListener('click', loadAreas);
+    // ————————————————————————————————
+
+
+// —— Modal y lógica Asignación Usuario–Áreas ——
+    function toggleAssignUserAreaModal() {
+      const m = document.getElementById('modalAssignUserArea');
+      if (m.style.display === 'flex') {
+        m.style.display = 'none';
+      } else {
+        // Antes de mostrar, cargamos los selects
+        populateAssignUserAreaLists();
+        m.style.display = 'flex';
+      }
+    }
+
+    function populateAssignUserAreaLists() {
+      // Usuarios
+      google.script.run
+        .withSuccessHandler(users => {
+          const sel = document.getElementById('selAssignUser');
+          sel.innerHTML = '<option value="" disabled selected>Selecciona usuario</option>'
+            + users.map(u => `<option value="${u.username}">${u.username} — ${u.fullName}</option>`).join('');
+        })
+        .getAllUsers();
+
+      // Áreas
+      google.script.run
+        .withSuccessHandler(areas => {
+          const sel = document.getElementById('selAssignArea');
+          sel.innerHTML = '<option value="" disabled selected>Selecciona área</option>'
+            + areas.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+        })
+        .getAllAreas();
+    }
+
+    function loadUserAreas() {
+      const tbl = document.getElementById('userAreasTable');
+      tbl.innerHTML = `
+        <thead>
+          <tr><th>Usuario</th><th>Área</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3"><span class="spinner"></span> Cargando…</td></tr>
+        </tbody>`;
+      google.script.run
+        .withSuccessHandler(list => {
+          const rows = list.map(item =>
+            `<tr>
+               <td>${item.username}</td>
+               <td>${item.areaName}</td>
+               <td>
+                 <button onclick="removeUserArea('${item.username}','${item.areaId}')">🗑</button>
+               </td>
+             </tr>`
+          ).join('');
+          tbl.querySelector('tbody').innerHTML = rows || `<tr><td colspan="3">Sin asignaciones.</td></tr>`;
+        })
+        .withFailureHandler(e => {
+          tbl.querySelector('tbody').innerHTML =
+            `<tr><td colspan="3" style="color:red">${e.message}</td></tr>`;
+        })
+        .getAllUserAreas();
+    }
+
+    function assignUserArea() {
+      const form = document.getElementById('assignUserAreaForm');
+      const data = Object.fromEntries(new FormData(form));
+      google.script.run
+        .withSuccessHandler(res => {
+          const msg = document.getElementById('assignUserAreaMsg');
+          if (res.success) {
+            msg.style.color = 'green';
+            msg.innerText = '¡Asignación creada!';
+            form.reset();
+            loadUserAreas();
+            setTimeout(() => {
+              msg.innerText = '';
+              toggleAssignUserAreaModal();
+            }, 1000);
+          } else {
+            msg.style.color = 'red';
+            msg.innerText = res.message;
+          }
+        })
+        .withFailureHandler(err => {
+          document.getElementById('assignUserAreaMsg').innerText = err.message;
+        })
+        .addUserArea(data);
+    }
+
+    function removeUserArea(username, areaId) {
+      if (!confirm(`¿Eliminar asignación de ${username} en área ${areaId}?`)) return;
+      google.script.run
+        .withSuccessHandler(() => loadUserAreas())
+        .withFailureHandler(err => alert(err.message))
+        .deleteUserArea({username, areaId});
+    }
+
+    // Cada vez que el nav abre “user-areas” recargamos:
+    document.querySelector("button[onclick=\"navigateTo('user-areas')\"]")
+      .addEventListener('click', loadUserAreas);
+    // ————————————————————————————————————————————
+
+// —— Modal y lógica Equipos ——
+    function toggleEquipmentModal(edit = false, eq = {}) {
+      const m = document.getElementById('modalEquipment');
+      const title = document.getElementById('equipmentModalTitle');
+      const form = document.getElementById('equipmentForm');
+      if (m.style.display === 'flex') {
+        m.style.display = 'none';
+        form.reset();
+        document.getElementById('equipmentMsg').innerText = '';
+      } else {
+        if (edit) {
+          title.innerText = 'Editar Equipo';
+          document.getElementById('eqId').value        = eq.id;
+          document.getElementById('eqName').value      = eq.name;
+          document.getElementById('eqCategory').value  = eq.category;
+          document.getElementById('eqLocation').value  = eq.location;
+          document.getElementById('eqStatus').value    = eq.status;
+          document.getElementById('eqDate').value      = eq.acquiredDate;
+        } else {
+          title.innerText = 'Nuevo Equipo';
+          form.reset();
+        }
+        m.style.display = 'flex';
+      }
+    }
+
+    function loadEquipment() {
+      const tbl = document.getElementById('equipmentTable');
+      tbl.innerHTML = `
+        <thead>
+          <tr>
+            <th>Nombre</th><th>Categoría</th><th>Ubicación</th>
+            <th>Estado</th><th>Adquisición</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="6"><span class="spinner"></span> Cargando…</td></tr>
+        </tbody>`;
+      google.script.run
+        .withSuccessHandler(list => {
+          const rows = list.map(eq =>
+            `<tr>
+               <td>${eq.name}</td>
+               <td>${eq.category}</td>
+               <td>${eq.location}</td>
+               <td>${eq.status}</td>
+               <td>${eq.acquiredDate}</td>
+               <td>
+                 <button onclick='toggleEquipmentModal(true, ${JSON.stringify(eq)})'>Editar</button>
+                 <button onclick="deleteEquipment('${eq.id}')">🗑</button>
+               </td>
+             </tr>`
+          ).join('');
+          tbl.querySelector('tbody').innerHTML = rows || `<tr><td colspan="6">No hay equipos.</td></tr>`;
+        })
+        .withFailureHandler(e => {
+          tbl.querySelector('tbody').innerHTML =
+            `<tr><td colspan="6" style="color:red">${e.message}</td></tr>`;
+        })
+        .getAllEquipment();
+    }
+
+function saveEquipment() {
+  const form = document.getElementById('equipmentForm');
+  const data = Object.fromEntries(new FormData(form));
+  const msg  = document.getElementById('equipmentMsg');
+  const method = data.id ? 'updateEquipment' : 'addEquipment';
+
+  const runner = google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        msg.style.color = 'green';
+        msg.innerText = res.message || 'Guardado.';
+        loadEquipment();
+        setTimeout(() => toggleEquipmentModal(), 1000);
+      } else {
+        msg.style.color = 'red';
+        msg.innerText = res.message;
+      }
+    })
+    .withFailureHandler(err => {
+      msg.style.color = 'red';
+      msg.innerText = err.message;
+    });
+
+  // ¡AQUÍ NO HAY PUNTO ANTES DE [method]!
+  runner[data.id ? 'updateEquipment' : 'addEquipment'](data);
+}
+
+    function deleteEquipment(id) {
+      if (!confirm('¿Eliminar este equipo?')) return;
+      google.script.run
+        .withSuccessHandler(() => loadEquipment())
+        .withFailureHandler(err => alert(err.message))
+        .deleteEquipment({ id });
+    }
+
+    // Listener: al abrir la pestaña “equipment”
+    document.querySelector("button[onclick=\"navigateTo('equipment')\"]")
+      .addEventListener('click', loadEquipment);
+
+    // Y también carga al inicio si ya estás en equipment
+    if (location.search.includes('page=admin') && 
+        document.getElementById('equipment').style.display!=='none') {
+      loadEquipment();
+    }
+    // ——————————————————————————————————————————————
+
+  </script>
+
+</body>
+</html>
