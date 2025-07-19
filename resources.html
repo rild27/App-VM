@@ -1,0 +1,227 @@
+<!-- resources.html -->
+<!-- Secciones del dashboard -->
+<section id="profile"></section>
+
+      <section id="personalDocs" style="display:none">
+          <h3>Documentos Personales</h3>
+          <form id="personalDocForm">
+            <input type="hidden" name="username">
+            <div class="form-group">
+              <label>Nombre del documento:</label>
+              <select name="documentName" id="personalDocSelect" required>
+                <option value="" disabled selected>Selecciona un documento</option>
+                <option value="Acta de nacimiento">Acta de nacimiento</option>
+                <option value="Comprobante de domicilio">Comprobante de domicilio</option>
+                <option value="Identificación oficial">Identificación oficial</option>
+                <option value="Constancia de situación fiscal">Constancia de situación fiscal</option>
+                <option value="CURP">CURP</option>
+                <option value="Título profesional">Título profesional</option>
+                <option value="Cédula profesional">Cédula profesional</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Archivo:</label>
+              <input type="file" name="file" accept=".pdf,.jpg,.png" required>
+            </div>
+            <button type="button" onclick="uploadPersonalDoc()">Subir Documento</button>
+            <span id="personalDocMsg"></span>
+          </form>
+          <hr>
+          <h4>Registros Actuales</h4>
+          <table id="personalDocsTable"></table>
+        </section>
+
+        <!-- Sección Documentos Administrativos -->
+        <section id="adminDocs" style="display:none">
+            <h3>Documentos Administrativos</h3>
+
+            <!-- formulario: sólo admins lo verán -->
+            <form id="adminDocForm">
+              <input type="hidden" name="username">
+
+              <div class="form-group">
+                <label>Nombre del documento:</label>
+                <select name="documentName" required>
+                  <option value="" disabled selected>Selecciona un documento</option>
+                  <option value="Carta de autorización">Carta de autorización</option>
+                  <option value="Perfil de puesto">Perfil de puesto</option>
+                  <option value="Carta de confidencialidad">Carta de confidencialidad</option>
+                  <option value="Nombramiento">Nombramiento</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Archivo:</label>
+                <input type="file" name="file" accept=".pdf,.jpg,.png" required>
+              </div>
+
+              <button type="button" onclick="uploadAdminDoc()">Subir Documento</button>
+              <span id="adminDocMsg" style="display:block; margin-top:0.5rem; color:#e74c3c;"></span>
+            </form>
+
+            <hr>
+
+            <h4>Registros Actuales</h4>
+            <table id="adminDocsTable" style="width:100%; border-collapse:collapse; margin-top:1rem; background:#fff; border-radius:8px; overflow:hidden;">
+              <!-- se llenará dinámicamente -->
+            </table>
+            </section>
+
+      <section id="workExperience" style="display:none; max-width: 1000px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+  <h3 style="color:#2c3e50; margin-bottom:1rem; font-size:1.5rem;">Experiencia laboral</h3>
+  <form id="workExpForm" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:2rem; max-width:600px; margin-left:auto; margin-right:auto;">
+    <input type="hidden" name="username">
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Empresa:</label>
+      <input type="text" name="empresa" required>
+    </div>
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Fecha de inicio:</label>
+      <input type="date" name="inicio" required>
+    </div>
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Fecha de fin:</label>
+      <input type="date" name="fin" required>
+    </div>
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Puesto desempeñado:</label>
+      <input type="text" name="puesto" required>
+    </div>
+    <button type="button" onclick="uploadWorkExperience()" style="background: linear-gradient(135deg,#2ecc71,#27ae60); color:white; border:none; padding:0.75rem 1.5rem; border-radius:6px; cursor:pointer; width:50%; margin:1rem auto 0; transition:background 0.3s ease,transform 0.2s ease;">
+      Guardar Experiencia
+    </button>
+    <span id="workExpMsg" style="display:block; margin-top:0.5rem; color:#e74c3c;"></span>
+  </form>
+  <hr>
+  <h4 style="margin-top:1.5rem; color:#2c3e50;">Registros actuales</h4>
+  <table id="workExperienceTable" style="width:100%; border-collapse:collapse; margin-top:1rem; background:#fff; border-radius:8px; overflow:hidden;">
+    <!-- Se llena dinámicamente -->
+  </table>
+</section>
+
+<section id="academic" style="display:none; max-width:1000px; margin:2rem auto; padding:2rem; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); transition:transform 0.3s ease;">
+  <h3 style="color:#2c3e50; margin-bottom:1rem; font-size:1.5rem;">Formación académica</h3>
+  <form id="academicForm" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:2rem; max-width:600px; margin-left:auto; margin-right:auto;">
+    <input type="hidden" name="username">
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Estudios:</label>
+      <input type="text" name="nivel" required>
+    </div>
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Institución:</label>
+      <input type="text" name="institucion" required>
+    </div>
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Fecha de ingreso:</label>
+      <input type="date" name="ingreso" required>
+    </div>
+    <div class="form-group">
+      <label style="width:150px; font-weight:500; color:#34495e;">Fecha de egreso:</label>
+      <input type="date" name="egreso" required>
+    </div>
+    <button type="button" onclick="uploadAcademic()" style="background:linear-gradient(135deg,#2ecc71,#27ae60); color:white; border:none; padding:0.75rem 1.5rem; border-radius:6px; cursor:pointer; width:50%; margin:1rem auto 0; transition:background 0.3s ease,transform 0.2s ease;">
+      Guardar Formación
+    </button>
+    <span id="academicMsg" style="display:block; margin-top:0.5rem; color:#e74c3c;"></span>
+  </form>
+  <hr>
+  <h4 style="margin-top:1.5rem; color:#2c3e50;">Registros actuales</h4>
+  <table id="academicTable" style="width:100%; border-collapse:collapse; margin-top:1rem; background:#fff; border-radius:8px; overflow:hidden;">
+    <!-- Se llenará dinámicamente -->
+  </table>
+</section>
+
+<section id="caps" style="display:none">
+  <h3>Capacitaciones</h3>
+  <form id="uploadForm">
+    <input type="hidden" name="username">
+
+    <div class="form-group">
+      <label for="selCategoria">Categoría:</label>
+      <select name="categoria" id="selCategoria" required>
+        <option value="" disabled selected>Selecciona una categoría</option>
+        <!-- Se llenará dinámicamente desde client.js -->
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="curso">Curso:</label>
+      <input type="text" name="curso" id="curso" required>
+    </div>
+
+    <div class="form-group">
+      <label for="empresa">Empresa:</label>
+      <input type="text" name="empresa" id="empresa" required>
+    </div>
+
+    <div class="form-group">
+      <label for="profesor">Profesor:</label>
+      <input type="text" name="profesor" id="profesor">
+    </div>
+
+    <div class="form-group">
+      <label for="inicio">Fecha de inicio:</label>
+      <input type="date" name="inicio" id="inicio" required>
+    </div>
+
+    <div class="form-group">
+      <label for="fin">Fecha de fin:</label>
+      <input type="date" name="fin" id="fin" required>
+    </div>
+
+    <div class="form-group">
+      <label for="horas">Horas:</label>
+      <input type="number" name="horas" id="horas" required>
+    </div>
+
+    <div class="form-group">
+      <label for="fileCap">Archivo:</label>
+      <input type="file" name="file" id="fileCap" accept=".pdf,.jpg,.png" required>
+    </div>
+
+    <button type="button" onclick="uploadTrainingDocument()">
+      Subir Constancia
+    </button>
+    <span id="uploadMsg" class="form-message"></span>
+  </form>
+
+  <hr>
+
+  <h4>Registros Actuales</h4>
+  <table id="capsTable"></table>
+</section>
+
+
+
+
+    <!-- Form edición de experiencia laboral -->
+        <section id="workExperience" style="display:none; /* tu estilo */">
+            <h3>Experiencia laboral</h3>
+            <form id="workExpForm" style="/* tu estilo */">
+              <!-- tu formulario de agregar nueva experiencia -->
+            </form>
+            <hr>
+            <table id="workExperienceTable"></table>
+          </section>
+
+
+  <!-- Formulario de subida: solo para admins -->
+        <form id="adminDocForm" style="margin-bottom:1rem; display:none;">
+          <input type="hidden" name="username">
+          <div class="form-group">
+            <label>Tipo de documento:</label>
+            <select name="documentName" required>
+              <option value="" disabled selected>Selecciona un tipo</option>
+              <option value="Carta de autorización">Carta de autorización</option>
+              <option value="Perfil de puesto">Perfil de puesto</option>
+              <option value="Carta de confidencialidad">Carta de confidencialidad</option>
+              <option value="Nombramiento">Nombramiento</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Archivo:</label>
+            <input type="file" name="file" accept=".pdf,.jpg,.png" required>
+          </div>
+          <button type="button" onclick="uploadAdminDoc()">Subir Documento</button>
+          <span id="adminDocMsg"></span>
+        </form>
