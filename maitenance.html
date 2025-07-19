@@ -1,0 +1,30 @@
+<div id="maintModal" style="display:none">
+  <form onsubmit="event.preventDefault(); saveMaint();">
+    <input name="id" placeholder="ID Mto" required>
+    <input name="equipmentId" type="hidden">
+    <select name="type">
+      <option value="preventivo">Preventivo</option>
+      <option value="correctivo">Correctivo</option>
+    </select>
+    <textarea name="description" placeholder="Descripción"></textarea>
+    <input name="dateScheduled" type="date" required>
+    <input name="responsible" placeholder="Responsable">
+    <input name="cost" type="number" placeholder="Coste">
+    <button type="submit">Guardar</button>
+    <button type="button" onclick="closeModal()">Cancelar</button>
+  </form>
+</div>
+<script>
+  function openMaintModal(eid){
+    document.querySelector('#maintModal form').equipmentId.value=eid;
+    document.getElementById('maintModal').style.display='block';
+  }
+  function closeModal(){ document.getElementById('maintModal').style.display='none'; }
+  function saveMaint(){
+    const form=Object.fromEntries(new FormData(document.querySelector('#maintModal form')));
+    google.script.run.withSuccessHandler(()=>{
+      closeModal();
+      loadMyEquip();
+    }).scheduleMaintenance(form);
+  }
+</script>
