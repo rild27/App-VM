@@ -1,0 +1,42 @@
+<section id="equipment">
+  <h2>Catálogo de Equipos</h2>
+  <select id="areaFilter" onchange="loadEquip()"></select>
+  <button onclick="showEquipForm()">+ Agregar Equipo</button>
+  <table id="equipTable">
+    <thead><tr>
+      <th>ID</th><th>Nombre</th><th>Categoría</th><th>Ubicación</th>
+      <th>Estado</th><th>Adquisición</th><th>AreaID</th><th>Acc.</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  <!-- aquí podrías inyectar un modal con formulario -->
+</section>
+<script>
+  function loadAreasFilter(){
+    google.script.run.withSuccessHandler(areas=>{
+      const sel=document.getElementById('areaFilter');
+      sel.innerHTML='<option value="">Todas</option>';
+      areas.forEach(a=>sel.add(new Option(a.Nombre,a.ID)));
+    }).getAllAreas();
+  }
+  function loadEquip(){
+    const area=document.getElementById('areaFilter').value||null;
+    google.script.run.withSuccessHandler(list=>{
+      const b=document.querySelector('#equipTable tbody'); b.innerHTML='';
+      list.forEach(e=> b.insertAdjacentHTML('beforeend',`
+        <tr>
+          <td>${e.ID}</td><td>${e.Nombre}</td><td>${e.Categoria}</td>
+          <td>${e.Ubicacion}</td><td>${e.Estado}</td><td>${e.FechaAdquisicion}</td><td>${e.AreaID}</td>
+          <td>
+            <button onclick="editEquip('${e.ID}')">✏️</button>
+            <button onclick="delEquip('${e.ID}')">🗑️</button>
+          </td>
+        </tr>`));
+    }).getAllEquipment(area);
+  }
+  // funciones showEquipForm, saveEquip, editEquip, delEquip similares a areas.js
+  document.addEventListener('DOMContentLoaded',()=>{
+    loadAreasFilter();
+    loadEquip();
+  });
+</script>
