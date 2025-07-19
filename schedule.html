@@ -1,0 +1,203 @@
+<!-- schedule.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programación Preventiva</title>
+  <?!= include('style'); ?>     <!-- Tus estilos CSS -->
+  <?!= include('shared'); ?>    <!-- JS/CSS compartido (spinner, funciones comunes) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header style="display:flex; align-items:center; justify-content:space-between; padding:1rem;">
+    <h1>Programación Preventiva</h1>
+    <div>
+      <button onclick="volverAdmin()" class="btn-action--cancel">
+        ← Volver Admin
+      </button>
+      <button onclick="logout()" class="btn-action--cancel">
+        Cerrar Sesión
+      </button>
+    </div>
+  </header>
+
+  <main style="padding:2rem;">
+    <!-- Formulario de Nuevo/Edición -->
+    <section style="margin-bottom:2rem;">
+      <h2 id="formTitle">Programar Mantenimiento Preventivo</h2>
+      <form id="scheduleForm" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:600px;">
+        <input type="hidden" name="id" id="schedId">
+        <div>
+          <label>Equipo:</label><br>
+          <select name="equipoId" id="selEquipo" required>
+            <option value="" disabled selected>Cargando equipos…</option>
+          </select>
+        </div>
+        <div>
+          <label>Tipo:</label><br>
+          <select name="tipo" required>
+            <option value="preventivo">Preventivo</option>
+            <option value="correctivo">Correctivo</option>
+          </select>
+        </div>
+        <div style="grid-column:1/3;">
+          <label>Descripción:</label><br>
+          <textarea name="descripcion" rows="2" required style="width:100%;"></textarea>
+        </div>
+        <div>
+          <label>Fecha Programada:</label><br>
+          <input type="date" name="fechaProgramada" required>
+        </div>
+        <div style="align-self:flex-end;">
+          <button type="button" onclick="saveSchedule()" class="btn-primary">
+            Guardar
+          </button>
+          <button type="button" onclick="resetForm()" class="btn-action--cancel">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Tabla de Programaciones -->
+    <section>
+      <h2>Ciclos Programados</h2>
+      <table id="scheduleTable" style="width:100%; border-collapse:collapse;">
+        <!-- Se carga dinámicamente -->
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const BASE_URL = '<?= ScriptApp.getService().getUrl() ?>';
+    function irA(url) { window.open(url,'_top'); }
+    function logout() { sessionStorage.clear(); irA(BASE_URL+'?page=login'); }
+    function volverAdmin() { irA(BASE_URL+'?page=admin'); }
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+      loadEquipos();
+      loadSchedules();
+    });
+
+    // Carga lista de equipos en el select
+    function loadEquipos() {
+      const sel = document.getElementById('selEquipo');
+      google.script.run
+        .withSuccessHandler(eqs => {
+          sel.innerHTML = '<option value="" disabled selected>Selecciona equipo</option>'
+            + eqs.map(e=>`<option value="${e.ID}">${e.Nombre} (${e.Ubicación})</option>`).join('');
+        })
+        .withFailureHandler(err=>{
+          console.error('Error cargando equipos:', err);
+          sel.innerHTML = '<option disabled>Error al cargar</option>';
+        })
+        .getAllEquipment();
+    }
+
+    // Carga tabla de programaciones
+    function loadSchedules() {
+      const tbl = document.getElementById('scheduleTable');
+      tbl.innerHTML = `<thead>
+          <tr>
+            <th>Equipo</th><th>Tipo</th><th>Descripción</th>
+            <th>Fecha Prog.</th><th>Estado</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="6" style="text-align:center"><span class="spinner"></span> Cargando…</td></tr>
+        </tbody>`;
+      google.script.run
+        .withSuccessHandler(list=>{
+          if (!list.length) {
+            tbl.innerHTML = `<thead>…</thead><tbody><tr><td colspan="6" style="text-align:center;">No hay programaciones.</td></tr></tbody>`;
+            return;
+          }
+          let body = list.map(s=>{
+            const prog = new Date(s.fechaProgramada);
+            const hoy = new Date();
+            const estado = prog < hoy
+              ? '<span style="color:red;">Atrasado</span>'
+              : prog - hoy < 7*24*3600e3
+                ? '<span style="color:orange;">Próximo</span>'
+                : 'OK';
+            return `<tr>
+              <td>${s.equipoNombre}</td>
+              <td>${s.tipo}</td>
+              <td>${s.descripcion}</td>
+              <td>${s.fechaProgramada}</td>
+              <td>${estado}</td>
+              <td>
+                <button onclick="editSchedule('${s.ID}')">✏️</button>
+                <button onclick="deleteSchedule('${s.ID}')">🗑️</button>
+              </td>
+            </tr>`;
+          }).join('');
+          tbl.innerHTML = `<thead>
+            <tr>
+              <th>Equipo</th><th>Tipo</th><th>Descripción</th>
+              <th>Fecha Prog.</th><th>Estado</th><th>Acciones</th>
+            </tr>
+          </thead><tbody>${body}</tbody>`;
+        })
+        .withFailureHandler(err=>{
+          tbl.innerHTML = `<thead>…</thead><tbody><tr><td colspan="6" style="color:red;text-align:center;">
+            Error: ${err.message}
+          </td></tr></tbody>`;
+        })
+        .getAllSchedules();
+    }
+
+    // Guardar (crear o actualizar)
+    function saveSchedule() {
+      const form = document.getElementById('scheduleForm');
+      const data = Object.fromEntries(new FormData(form));
+      google.script.run
+        .withSuccessHandler(res=>{
+          if (res.success) {
+            resetForm();
+            loadSchedules();
+          } else {
+            alert('Error: '+res.message);
+          }
+        })
+        .withFailureHandler(err=>alert('Comunicación fallida: '+err.message))
+        .upsertSchedule(data);
+    }
+
+    function editSchedule(id) {
+      google.script.run
+        .withSuccessHandler(s=>{
+          document.getElementById('formTitle').innerText = 'Editar Mantenimiento';
+          document.getElementById('schedId').value           = s.ID;
+          document.getElementById('selEquipo').value       = s.equipoId;
+          document.querySelector('[name=tipo]').value      = s.tipo;
+          document.querySelector('[name=descripcion]').value= s.descripcion;
+          document.querySelector('[name=fechaProgramada]').value = s.fechaProgramada;
+        })
+        .withFailureHandler(err=>alert('Error al cargar: '+err.message))
+        .getScheduleById(id);
+    }
+
+    function deleteSchedule(id) {
+      if (!confirm('¿Eliminar esta programación?')) return;
+      google.script.run
+        .withSuccessHandler(res=>{
+          if (res.success) loadSchedules();
+          else alert('Error: '+res.message);
+        })
+        .withFailureHandler(err=>alert('Comunicación fallida: '+err.message))
+        .cancelSchedule(id);
+    }
+
+    function resetForm() {
+      document.getElementById('scheduleForm').reset();
+      document.getElementById('schedId').value = '';
+      document.getElementById('formTitle').innerText = 'Programar Mantenimiento Preventivo';
+    }
+  </script>
+</body>
+</html>
+
