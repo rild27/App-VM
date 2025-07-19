@@ -1,0 +1,1279 @@
+ <script>
+
+      let currentUser;     
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // 1) Si no estamos en Dashboard, salimos
+          if (!document.body.classList.contains('dashboard-page')) return;
+
+        // 2) Cargamos usuario
+          const stored = sessionStorage.getItem('currentUser');
+          if (!stored) return logout();
+          currentUser = JSON.parse(stored);
+
+        // —————— MUESTRA BOTÓN PANEL ADMIN SI ES ADMIN ——————
+        const btnAdmin = document.getElementById('btnAdminPanel');
+        if (currentUser.role === 'admin' && btnAdmin) {
+          btnAdmin.style.display = 'inline-block';
+        }
+        // ————————————————————————————————————————————————————
+
+        // oculta el form si no es admin
+          if (currentUser.role !== 'admin') {
+            document.getElementById('adminDocForm').style.display = 'none';
+          }
+          // siempre carga tabla (usuarios y admins la ven)
+          loadAdminDocuments();
+
+          /*if (currentUser.role === 'admin') {
+            document.querySelector('.sidebar-nav .admin-item').style.display = 'block';
+          }*/
+          
+        // 3) Mostramos datos de cabecera
+          document.getElementById('fullName').innerText = currentUser.fullName || 'N/A';
+          document.getElementById('username').innerText = currentUser.username || 'N/A';
+          document.querySelector('#uploadForm input[name="username"]').value = currentUser.username;
+          document.querySelector('#personalDocForm input[name="username"]').value = currentUser.username;
+
+        // 4) Inicializamos secciones dependientes
+          runSafely(renderProfile);
+          runSafely(loadDocuments);
+          runSafely(loadPersonalDocuments);
+          runSafely(loadWorkExperience);
+          runSafely(loadAcademic);
+          runSafely(loadProfileImage);
+
+        // 5) Finalmente, mostramos "Datos personales" por defecto
+          showSection('profile');
+        
+        // 1) Si había un originalUser (estamos impersonando), muestro un botón para volver
+  var orig = sessionStorage.getItem('originalUser');
+  if (orig) {
+    // creo dinámicamente un botón en el header (o donde prefieras)
+    var btn = document.createElement('button');
+    btn.textContent = '🔙 Volver como Admin';
+    btn.style.marginLeft = '1rem';
+    btn.onclick = function() {
+      // restaurar sesión original
+      sessionStorage.setItem('currentUser', orig);
+      sessionStorage.removeItem('originalUser');
+      // volver al panel de admin
+      window.top.location.href = BASE_URL + '?page=admin';
+    };
+    // por ejemplo, lo añadimos al header:
+    document.querySelector('header').appendChild(btn);
+  }
+
+
+      // Poblar categorías:
+  google.script.run
+    .withSuccessHandler(cats => {
+      const sel = document.getElementById('selCategoria');
+      if (!sel) return;
+      sel.innerHTML = '<option value="" disabled selected>Selecciona una categoría</option>';
+      cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+    })
+    .withFailureHandler(err => console.error('Error cargando categorías:', err))
+    .getCategories();
+
+
+      });
+      
+      function runSafely(fn) { try { fn(); } catch (e) { console.error(`Error en ${fn.name}:`, e); } }
+
+  /*function showSection(id) {
+      // 1) Si no existe esa sección, salimos (por ejemplo en la página Admin)
+      const target = document.getElementById(id);
+      if (!target) return;
+
+      // 2) Ocultamos TODAS las secciones del dashboard
+      document.querySelectorAll('main > section').forEach(s => {
+        s.style.display = 'none';
+      });
+
+      // 3) Si estamos pidiendo “profile”, volvemos a renderizarlo
+      if (id === 'profile') {
+        renderProfile(false);
+      }
+
+      // 4) Mostramos la sección elegida
+      target.style.display = 'block';
+
+      // 5) Y recargamos tablas cuando toca
+      if (id === 'personalDocs')     loadPersonalDocuments();
+      if (id === 'workExperience')   loadWorkExperience();
+      if (id === 'academic')         loadAcademic();
+      if (id === 'caps')             loadDocuments();
+    }*/
+
+         
+      function logout() {
+        sessionStorage.clear();
+        // te lleva a la página de login (o simplemente a la raíz)
+        window.top.location.href = BASE_URL + '?page=login';
+      }
+
+       function goAdmin() {
+        // te lleva al panel de admin
+        window.top.location.href = BASE_URL + '?page=admin';
+      }
+
+      /**
+       * Redirige a la ruta /exec?page=admin sin usar plantillas
+       */
+     /* function goAdmin() {
+        const baseUrl = '<?= ScriptApp.getService().getUrl() ?>';
+        const target  = baseUrl + '?page=admin';
+        console.log('🚀 Navegando a (top):', target);
+        window.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=admin';
+      }*/
+
+      function formatDateForInput(ddmmyyyy) {
+        if (!ddmmyyyy || typeof ddmmyyyy !== 'string') return '';
+        const parts = ddmmyyyy.split('/');
+        if (parts.length !== 3) return '';
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+
+function renderProfile(isEditing = false) {
+  const user = currentUser;
+  const container = document.getElementById('profile');
+  if (!container) return;
+
+  let html = `<h3>Datos personales</h3>`;
+
+  if (isEditing) {
+    // === MODO EDICIÓN ===
+    const birthDateValue = formatDateForInput(user.birthDate);
+    html += `
+      <form id="editForm">
+        <input type="hidden" name="username" value="${user.username}">
+        <label>Nombre Completo:</label>
+        <input type="text" name="fullName" value="${user.fullName || ''}">
+        <label>Email:</label>
+        <input type="email" name="email" value="${user.email || ''}">
+        <label>Fecha de Nacimiento:</label>
+        <input type="date" name="birthDate" value="${birthDateValue}">
+        <label>Dirección:</label>
+        <input type="text" name="address" value="${user.address || ''}">
+        <label>NSS:</label>
+        <input type="text" name="ssn" value="${user.ssn || ''}">
+        <label>CURP:</label>
+        <input type="text" name="curp" value="${user.curp || ''}">
+        <label>RFC:</label>
+        <input type="text" name="rfc" value="${user.rfc || ''}">
+        <label>Teléfono Personal:</label>
+        <input type="tel" name="personalPhone" value="${user.personalPhone || ''}">
+        <label>Teléfono de Emergencia:</label>
+        <input type="tel" name="emergencyPhone" value="${user.emergencyPhone || ''}">
+        <label>Relación de Contacto:</label>
+        <input type="text" name="emergencyContactRelation" value="${user.emergencyContactRelation || ''}">
+        <label>Nivel de Estudios:</label>
+        <input type="text" name="highestEducation" value="${user.highestEducation || ''}">
+        <label>Estado Civil:</label>
+        <input type="text" name="maritalStatus" value="${user.maritalStatus || ''}">
+        <label>Número de Hijos:</label>
+        <input type="number" name="numberOfChildren" value="${user.numberOfChildren || ''}">
+        <label>Resumen Profesional:</label>
+        <textarea name="professionalSummary" rows="5"
+          style="width:100%; box-sizing:border-box; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">${user.professionalSummary || ''}</textarea>
+        <div style="margin-top:1rem;">
+          <button type="button" onclick="saveProfile()" class="btn-action">Guardar Cambios</button>
+          <button type="button" onclick="renderProfile(false)" class="btn-action--cancel">Cancelar</button>
+        </div>
+      </form>
+    `;
+  } else {
+    // === MODO VISUALIZACIÓN ===
+    html += `
+      <div id="profileDisplay">
+        <p><strong>Nombre Completo:</strong> ${user.fullName || 'N/A'}</p>
+        <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+        <p><strong>Puesto:</strong> ${user.position || 'N/A'}</p>
+        <p><strong>Centro de Trabajo:</strong> ${user.workCenter || 'N/A'}</p>
+        <p><strong>Fecha Contratación:</strong> ${user.hireDate || 'N/A'}</p>
+        <p><strong>Fecha Nacimiento:</strong> ${user.birthDate || 'N/A'}</p>
+        <p><strong>Dirección:</strong> ${user.address || 'N/A'}</p>
+        <p><strong>NSS:</strong> ${user.ssn || 'N/A'}</p>
+        <p><strong>CURP:</strong> ${user.curp || 'N/A'}</p>
+        <p><strong>RFC:</strong> ${user.rfc || 'N/A'}</p>
+        <p><strong>Teléfono Personal:</strong> ${user.personalPhone || 'N/A'}</p>
+        <p><strong>Teléfono de Emergencia:</strong> ${user.emergencyPhone || 'N/A'}</p>
+        <p><strong>Relación de Contacto:</strong> ${user.emergencyContactRelation || 'N/A'}</p>
+        <p><strong>Nivel de Estudios:</strong> ${user.highestEducation || 'N/A'}</p>
+        <p><strong>Estado Civil:</strong> ${user.maritalStatus || 'N/A'}</p>
+        <p><strong>Número de Hijos:</strong> ${user.numberOfChildren || 'N/A'}</p>
+        <hr>
+        <h4>Resumen Profesional</h4>
+        <p>${user.professionalSummary || 'No hay un resumen disponible.'}</p>
+      </div>
+
+      <div style="margin-top:1rem;">
+         <button class="btn-primary" onclick="renderProfile(true)">
+    Editar Perfil
+  </button>
+
+  <!-- Botón para desplegar el formulario de cambio -->
+   <button
+    class="btn-primary"
+    onclick="showChangePassword()"
+    style="margin-top:1rem;"
+  >
+    Cambiar contraseña
+  </button>
+
+  <button class="btn-primary" onclick="showAvatarForm()" style="margin-top:1rem;">
+          Cambiar avatar
+        </button>
+
+  <div id="pwForm" style="display:none; margin-top:1rem; max-width:400px;">
+    <label>Contraseña actual:</label>
+    <input type="password" id="currentPw" style="width:100%;padding:0.5rem;margin-bottom:0.5rem;">
+    <label>Nueva contraseña:</label>
+    <input type="password" id="newPw" style="width:100%;padding:0.5rem;margin-bottom:0.5rem;">
+    <label>Confirmar nueva contraseña:</label>
+    <input type="password" id="confirmPw" style="width:100%;padding:0.5rem;margin-bottom:0.5rem;">
+    <button type="button"
+      class="btn-success"
+      onclick="changePassword()">
+      Guardar contraseña
+    </button>
+    <span id="pwMsg" style="display:block;margin-top:0.5rem;color:#e74c3c;"></span>
+  </div>
+
+      <!-- Dentro del bloque de perfil, añadir junto a "pwForm": -->
+        <div id="avatarForm" style="display:none; margin-top:1rem; max-width:400px;">
+          <label>Selecciona nueva foto:</label>
+          <input type="file" id="profileImageInput" accept="image/*">
+          <button class="btn-action" onclick="uploadProfilePic()">Subir avatar</button>
+          <span id="imageMsg" style="display:block; margin-top:0.5rem; color:#e74c3c;"></span>
+        </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+// Muestra/oculta el formulario de cambio de contraseña
+function showChangePassword() {
+  const pwForm = document.getElementById('pwForm');
+  const avForm = document.getElementById('avatarForm');
+  const mostrar = pwForm.style.display === 'none' || pwForm.style.display === '';
+  if (mostrar) {
+    // limpiar campos y mensajes
+    document.getElementById('currentPw').value = '';
+    document.getElementById('newPw').value     = '';
+    document.getElementById('confirmPw').value = '';
+    document.getElementById('pwMsg').innerText = '';
+    avForm.style.display = 'none';
+    pwForm.style.display = 'block';
+  } else {
+    pwForm.style.display = 'none';
+  }
+}
+
+// Muestra/oculta el formulario de cambio de avatar
+function showAvatarForm() {
+  const avForm = document.getElementById('avatarForm');
+  const pwForm = document.getElementById('pwForm');
+  const mostrar = avForm.style.display === 'none' || avForm.style.display === '';
+  if (mostrar) {
+    document.getElementById('profileImageInput').value = '';
+    document.getElementById('imageMsg').innerText       = '';
+    pwForm.style.display = 'none';
+    avForm.style.display = 'block';
+  } else {
+    avForm.style.display = 'none';
+  }
+}
+
+
+
+/**
+ * Llama al servidor para cambiar la contraseña.
+ * Valida campos antes de enviar.
+ */
+function changePassword() {
+  const msgEl   = document.getElementById('pwMsg');
+  const current = document.getElementById('currentPw').value.trim();
+  const nw      = document.getElementById('newPw').value.trim();
+  const conf    = document.getElementById('confirmPw').value.trim();
+
+  // Validaciones
+  if (!current || !nw || !conf) {
+    msgEl.textContent = 'Datos incompletos';
+    return;
+  }
+  if (nw !== conf) {
+    msgEl.textContent = 'La nueva contraseña no coincide';
+    return;
+  }
+  if (nw.length < 6) {
+    msgEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
+    return;
+  }
+
+  msgEl.style.color   = '#333';
+  msgEl.textContent   = 'Cambiando…';
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        msgEl.style.color   = 'green';
+        msgEl.textContent   = 'Contraseña actualizada.';
+        // Oculta el inline form tras 1.5s
+        setTimeout(() => {
+          document.getElementById('pwForm').style.display = 'none';
+          msgEl.textContent = '';
+        }, 1500);
+      } else {
+        msgEl.style.color   = '#e74c3c';
+        msgEl.textContent   = res.message;
+      }
+    })
+    .withFailureHandler(err => {
+      msgEl.style.color   = '#e74c3c';
+      msgEl.textContent   = 'Error de comunicación';
+      console.error(err);
+    })
+    .changeUserPassword({           // <-- coincide con tu función GS
+      username:        currentUser.username,
+      currentPassword: current,
+      newPassword:     nw
+    });
+}
+
+      
+      function updateFileName(fileInput) {
+        const display = document.getElementById('fileNameDisplay');
+        if (fileInput.files.length > 0) { display.textContent = fileInput.files[0].name; } 
+        else { display.textContent = 'Ningún archivo seleccionado'; }
+      }
+
+      function saveProfile() {
+        const form = document.getElementById('editForm');
+        const button = form.querySelector('button[onclick="saveProfile()"]');
+        button.textContent = 'Guardando...';
+        button.disabled = true;
+
+        const data = Object.fromEntries(new FormData(form));
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              currentUser = response.user;
+              sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+              document.getElementById('fullName').innerText = currentUser.fullName || 'N/A';
+              renderProfile(false);
+            } else { 
+              alert(response.message || "Ocurrió un error al guardar."); 
+              button.textContent = 'Guardar Cambios';
+              button.disabled = false;
+            }
+          })
+          .withFailureHandler(err => {
+              alert(`Error: ${err.message}`);
+              button.textContent = 'Guardar Cambios';
+              button.disabled = false;
+          })
+          .updateProfile(data);
+      }
+
+
+
+      function loadProfileImage() {
+          google.script.run
+            .withSuccessHandler(dataUrl => {
+              if (dataUrl) {
+                const img = document.getElementById('avatar');
+                img.src = dataUrl;                   // ahora es Data URL
+                img.classList.add('loaded');
+              }
+            })
+            .withFailureHandler(console.error)
+            .getProfileImageDataUrl(currentUser.username);
+        }
+
+
+      function toggleAvatarForm() {
+        const f = document.getElementById('avatarForm');
+        f.style.display = f.style.display === 'none' ? 'block' : 'none';
+      }
+
+      
+      // Al subir:
+        function uploadProfilePic() {
+            const input = document.getElementById('profileImageInput');
+            const msg   = document.getElementById('imageMsg');
+            if (!input.files.length) {
+              msg.style.color = '#e74c3c';
+              return msg.textContent = 'Selecciona una imagen.';
+            }
+            msg.style.color = '#333';
+            msg.textContent = 'Subiendo…';
+
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = e => {
+              const fileData = {
+                base64:   e.target.result.split(',')[1],
+                mimeType: file.type,
+                name:     file.name
+              };
+              // 1) sube la imagen
+              google.script.run
+                .withSuccessHandler(publicUrl => {
+                  if (!publicUrl) {
+                    msg.style.color = '#e74c3c';
+                    msg.textContent = 'Error al subir avatar.';
+                    return;
+                  }
+                  // 2) en lugar de usar publicUrl directo, pedimos el Data URL
+                  google.script.run
+                    .withSuccessHandler(dataUrl => {
+                      if (dataUrl) {
+                        document.getElementById('avatar').src = dataUrl;
+                        document.getElementById('avatar').classList.add('loaded');
+                        msg.style.color = 'green';
+                        msg.textContent = 'Avatar actualizado.';
+                        input.value = '';
+                        showAvatarForm();            // oculta form
+                      } else {
+                        msg.style.color = '#e74c3c';
+                        msg.textContent = 'No se pudo cargar la miniatura.';
+                      }
+                      setTimeout(() => msg.textContent = '', 2500);
+                    })
+                    .withFailureHandler(err => {
+                      console.error(err);
+                      msg.style.color = '#e74c3c';
+                      msg.textContent = 'Error al procesar imagen.';
+                    })
+                    .getProfileImageDataUrl(currentUser.username);
+                })
+                .withFailureHandler(err => {
+                  msg.style.color = '#e74c3c';
+                  msg.textContent = 'Error al subir avatar.';
+                  console.error(err);
+                })
+                .uploadProfileImage({
+                  username:     currentUser.username,
+                  profileImage: fileData
+                });
+            };
+            reader.readAsDataURL(file);
+          }
+
+
+      // Capacitaciones
+      function loadDocuments() {
+        google.script.run.withSuccessHandler(docs => {
+            const table = document.getElementById('capsTable');
+            let html = `<thead><tr><th>Curso</th><th>Categoría</th><th>Empresa</th><th>URL</th></tr></thead><tbody>`;
+            if (docs && docs.length > 0) {
+              docs.forEach(doc => { 
+
+                // --- nueva lógica de preview ---
+                  const match   = (doc.URL || '').match(/id=([^&]+)/);
+                  const fileId  = match ? match[1] : null;
+                  const preview = fileId
+                    ? `https://drive.google.com/file/d/${fileId}`
+                    : doc.URL;
+                  // ---------------------------------
+                  html += `<tr>
+                            <td>${doc.Curso   || ''}</td>
+                            <td>${doc.Categoría|| ''}</td>
+                            <td>${doc.Empresa || ''}</td>
+                            <td><a href="${preview}" target="_blank">Ver</a></td>
+                          </tr>`;
+                });
+              } else {
+                html += `<tr><td colspan="4">No hay datos.</td></tr>`;
+              }
+              html += `</tbody>`;
+              table.innerHTML = html;
+            })
+
+          .getUserDocuments(currentUser.username);
+      }
+      
+      // Personales
+      function loadPersonalDocuments() {
+          google.script.run.withSuccessHandler(docs => {
+            const table = document.getElementById('personalDocsTable');
+            let html = `<thead><tr>
+              <th>Documento</th><th>Fecha</th><th>URL</th><th>Acciones</th>
+            </tr></thead><tbody>`;
+
+            docs.forEach(doc => {
+              
+              html += `<tr data-doc="${doc['Nombre del Documento']}">
+                <td>${doc['Nombre del Documento']}</td>
+                <td>${doc['Timestamp']}</td>
+                <td>
+                <a
+                  href="${
+                    // si la URL viene en el formato uc?export=view&id=<ID>
+                    (function(url){
+                      const m = url.match(/id=([^&]+)/);
+                      return m
+                        ? `https://drive.google.com/file/d/${m[1]}/preview`
+                        : url;  // si no encaja, dejamos la URL original
+                    })(doc.URL)
+                  }"
+                  target="_blank"
+                >
+                  Ver
+                </a>
+                </td>
+                <td>
+                  <button class="btn-update" onclick="showInlineUpdate(this,'${doc['Nombre del Documento']}')">
+                    Actualizar
+                  </button>
+                </td>
+              </tr>`;
+            });
+            html += '</tbody>';
+            table.innerHTML = html;
+
+            // --- aquí inhabilitamos las opciones ya subidas ---
+            const select = document.getElementById('personalDocSelect');
+            // Primero reactivamos todas
+            Array.from(select.options).forEach(o => o.disabled = false);
+            // Luego deshabilitamos las que ya están en docs
+            docs.forEach(doc => {
+              const opt = select.querySelector(`option[value="${doc['Nombre del Documento']}"]`);
+              if (opt) opt.disabled = true;
+            });
+          }).getUserPersonalDocuments(currentUser.username);
+        }
+
+
+        function showInlineUpdate(btn, docName) {
+          // Si ya hay un formulario desplegado, lo quitamos
+          const existing = document.querySelector('#personalDocsTable tr.update-row');
+          if (existing) existing.remove();
+
+          // Fila padre
+          const tr = btn.closest('tr');
+          const updateRow = document.createElement('tr');
+          updateRow.classList.add('update-row');
+          updateRow.innerHTML = `
+            <td colspan="4">
+              <form onsubmit="event.preventDefault(); inlineUpdate('${docName}', this)">
+                <input type="file" name="file" accept=".pdf,.jpg,.png" required>
+                <button type="submit" class="btn-update">Guardar</button>
+                <button type="button" class="btn-cancel" onclick="this.closest('tr').remove()">Cancelar</button>
+              </form>
+              <span class="update-msg"></span>
+            </td>`;
+          tr.parentNode.insertBefore(updateRow, tr.nextSibling);
+        }
+
+        function inlineUpdate(oldName, form) {
+          const fileInput = form.querySelector('input[type=file]');
+          const msg = form.nextElementSibling || form.querySelector('.update-msg');
+          if (!fileInput.files.length) return msg.textContent = 'Selecciona un archivo.';
+          msg.textContent = 'Actualizando…';
+
+          const reader = new FileReader();
+          reader.onload = e => {
+            const fileData = {
+              base64: e.target.result.split(',')[1],
+              mimeType: fileInput.files[0].type,
+              name: fileInput.files[0].name
+            };
+            const payload = {
+              username: currentUser.username,
+              isPersonal: true,
+              documentName: oldName,
+              file: fileData
+            };
+            // Llamamos al servidor indicando el antiguo nombre para moverlo
+            google.script.run
+              .withSuccessHandler(url => {
+                msg.textContent = '¡Actualizado!';
+                loadPersonalDocuments();
+              })
+              .withFailureHandler(err => {
+                msg.textContent = 'Error: ' + err.message;
+              })
+              .uploadPersonalDocument(payload, /*updatingName=*/oldName);
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+/////////////////////////
+
+
+
+      // --- INICIO DE LA CORRECCIÓN ---
+function uploadTrainingDocument() {
+  const form = document.getElementById('uploadForm');
+  const msg  = document.getElementById('uploadMsg');
+  msg.innerText = '';
+
+  // 1) Obtenemos valores
+  const categoria = form.querySelector('select[name="categoria"]').value;
+  const curso     = form.querySelector('input[name="curso"]').value.trim();
+  const empresa   = form.querySelector('input[name="empresa"]').value.trim();
+  const profesor  = form.querySelector('input[name="profesor"]').value.trim();
+  const inicio    = form.querySelector('input[name="inicio"]').value;
+  const fin       = form.querySelector('input[name="fin"]').value;
+  const horas     = form.querySelector('input[name="horas"]').value;
+  const fileInput = form.querySelector('input[name="file"]');
+
+  // 2) Validación básica
+  if (!categoria || !curso || !empresa || !inicio || !fin || !horas || !fileInput.files.length) {
+    msg.style.color = '#e74c3c';
+    msg.innerText = 'Por favor, completa todos los campos y selecciona un archivo.';
+    return;
+  }
+
+  // 3) Preparamos la subida
+  msg.style.color = '#333';
+  msg.innerText = 'Subiendo…';
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const fileData = {
+      base64:   e.target.result.split(',')[1],
+      mimeType: file.type,
+      name:     file.name
+    };
+    const payload = {
+      username:  currentUser.username,
+      categoria, curso, empresa, profesor,
+      inicio, fin, horas,
+      file: fileData
+    };
+
+    google.script.run
+      .withSuccessHandler(res => {
+        msg.style.color = 'green';
+        msg.innerText = res;
+        form.reset();
+        form.querySelector('input[name="username"]').value = currentUser.username;
+        loadDocuments();
+        setTimeout(() => msg.innerText = '', 4000);
+      })
+      .withFailureHandler(err => {
+        msg.style.color = '#e74c3c';
+        msg.innerText = 'Error: ' + err.message;
+      })
+      .uploadDocument(payload);
+  };
+  reader.readAsDataURL(file);
+}
+
+
+      function showUpdatePersonal(docName) {
+        // Cambiamos el formulario para que sea un “update”
+        const form = document.getElementById('personalDocForm');
+        form.dataset.mode = 'update';            // marcador “update” vs “create”
+        form.dataset.docName = docName;          // el nombre que vamos a actualizar
+        form.querySelector('select[name="documentName"]').value = docName;
+        form.querySelector('select[name="documentName"]').disabled = true;
+        form.querySelector('button').textContent = 'Actualizar Documento';
+      }
+
+
+
+function uploadPersonalDoc() {
+  const form = document.getElementById('personalDocForm');
+  const msg  = document.getElementById('personalDocMsg');
+  msg.innerText = '';
+
+  const mode     = form.dataset.mode || 'create';
+  const docName  = form.querySelector('select[name="documentName"]').value;
+  const fileInput= form.querySelector('input[type="file"]');
+
+  // Validación básica: debe haber documento seleccionado y archivo
+  if (!docName || !fileInput.files.length) {
+    msg.style.color = '#e74c3c';
+    msg.innerText = 'Por favor, selecciona un tipo de documento y un archivo.';
+    return;
+  }
+
+  msg.style.color = '#333';
+  msg.innerText = mode === 'create' ? 'Subiendo…' : 'Actualizando…';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const fileData = {
+      base64:   e.target.result.split(',')[1],
+      mimeType: fileInput.files[0].type,
+      name:     fileInput.files[0].name
+    };
+    // Armamos el payload con todos los campos del form
+    const payload = Object.fromEntries(new FormData(form));
+    payload.file = fileData;
+    if (mode === 'update') payload._update = form.dataset.docName;
+
+    google.script.run
+      .withSuccessHandler(res => {
+        msg.style.color = 'green';
+        msg.innerText = res;
+        form.reset();
+        // restauramos estado inicial
+        delete form.dataset.mode;
+        delete form.dataset.docName;
+        form.querySelector('select[name="documentName"]').disabled = false;
+        form.querySelector('input[name="username"]').value = currentUser.username;
+        loadPersonalDocuments();
+        setTimeout(() => msg.innerText = '', 4000);
+      })
+      .withFailureHandler(err => {
+        msg.style.color = '#e74c3c';
+        msg.innerText = 'Error: ' + err.message;
+      })
+      .uploadPersonalDocument(payload);
+  };
+  reader.readAsDataURL(fileInput.files[0]);
+}
+
+
+
+      // Asigna el usuario al form y carga los datos
+function initializeWorkExpSection() {
+  document.querySelector('#workExpForm input[name="username"]').value = currentUser.username;
+  loadWorkExperience();
+}
+
+// Llama a la API para obtener y renderizar la tabla
+// 1) Cache global
+let _workCache = [];
+
+function loadWorkExperience() {
+  google.script.run.withSuccessHandler(entries => {
+    _workCache = entries;
+    const table = document.getElementById('workExperienceTable');
+    let html = `<thead>
+                  <tr>
+                    <th>Empresa</th><th>Inicio</th><th>Fin</th><th>Tiempo</th><th>Puesto</th><th>Acciones</th>
+                  </tr>
+                </thead><tbody>`;
+
+    if (!entries.length) {
+      html += `<tr><td colspan="6">No hay datos.</td></tr>`;
+    } else {
+      entries.forEach((e, i) => {
+        html += `<tr data-idx="${i}">
+          <td>${e.Empresa}</td>
+          <td>${e.Inicio}</td>
+          <td>${e.Fin}</td>
+          <td>${e.Tiempo}</td>
+          <td>${e.Puesto}</td>
+          <td>
+            <button class="btn-primary" onclick="startEditWork(this, ${i})">Editar</button>
+          </td>
+        </tr>`;
+      });
+    }
+
+    html += `</tbody>`;
+    table.innerHTML = html;
+  }).getUserWorkExperience(currentUser.username);
+}
+
+
+
+// 3) Pasa a modo edición in-place
+function startEditWork(btn, idx) {
+  const tr = btn.closest('tr');
+  const e  = _workCache[idx];
+  tr.innerHTML = `
+    <td><input type="text" id="edit_empresa" value="${e.Empresa}"></td>
+    <td><input type="date" id="edit_inicio" value="${formatDateForInput(e.Inicio)}"></td>
+    <td><input type="date" id="edit_fin"    value="${formatDateForInput(e.Fin)}"></td>
+    <td>${e.Tiempo}</td>
+    <td><input type="text" id="edit_puesto" value="${e.Puesto}"></td>
+    <td>
+      <button class="btn-success" onclick="saveEditWork(${idx})">Guardar</button>
+      <button class="btn-secondary" onclick="loadWorkExperience()">Cancelar</button>
+    </td>`;
+}
+
+function cancelEditWork(idx) {
+  const e  = _workCache[idx];
+  const tr = document.querySelector(`#workExperienceTable tr[data-idx="${idx}"]`);
+  tr.innerHTML = `
+    <td>${e.Empresa}</td>
+    <td>${e.Inicio}</td>
+    <td>${e.Fin}</td>
+    <td>${e.Tiempo}</td>
+    <td>${e.Puesto}</td>
+    <td>
+      <button onclick="startEditWork(this, ${idx})">Editar</button>
+    </td>`;
+}
+
+// 4) Graba la edición usando el timestamp real
+function saveEditWork(idx) {
+  const e = _workCache[idx];
+  const empresa = document.getElementById('edit_empresa').value;
+  const inicio  = document.getElementById('edit_inicio').value;
+  const fin     = document.getElementById('edit_fin').value;
+  const puesto  = document.getElementById('edit_puesto').value;
+
+  // cambiamos el texto del botón (opcional)
+  const btn = document.querySelector('tr[data-idx="'+idx+'"] .btn-success');
+  btn.textContent = 'Guardando…';
+  btn.disabled    = true;
+
+  const payload = {
+    username:  currentUser.username,
+    empresa:   empresa,
+    inicio:    inicio,
+    fin:       fin,
+    puesto:    puesto,
+    rowIndex:  e.rowIndex   // <— ahora sí usamos la fila real
+  };
+
+  google.script.run
+    .withSuccessHandler(() => loadWorkExperience())
+    .withFailureHandler(err => {
+      alert(err.message);
+      loadWorkExperience();
+    })
+    .updateWorkExperience(payload);
+}
+
+
+
+// Experiencia laboral
+function uploadWorkExperience() {
+  const form = document.getElementById('workExpForm');
+  const msg  = document.getElementById('workExpMsg');
+  msg.innerText = '';
+
+  // 1) Obtenemos valores
+  const empresa = form.querySelector('input[name="empresa"]').value.trim();
+  const inicio  = form.querySelector('input[name="inicio"]').value;
+  const fin     = form.querySelector('input[name="fin"]').value;
+  const puesto  = form.querySelector('input[name="puesto"]').value.trim();
+
+  // 2) Validación básica
+  if (!empresa || !inicio || !fin || !puesto) {
+    msg.style.color = '#e74c3c';
+    msg.innerText = 'Por favor, completa todos los campos.';
+    return;
+  }
+
+  // 3) Llamamos al servidor
+  msg.style.color = '#333';
+  msg.innerText = 'Guardando…';
+  google.script.run
+    .withSuccessHandler(res => {
+      msg.style.color = 'green';
+      msg.innerText = res;
+      form.reset();
+      form.querySelector('input[name="username"]').value = currentUser.username;
+      loadWorkExperience();
+      setTimeout(() => msg.innerText = '', 4000);
+    })
+    .withFailureHandler(err => {
+      msg.style.color = '#e74c3c';
+      msg.innerText = 'Error: ' + err.message;
+    })
+    .uploadWorkExperience({ 
+      username: currentUser.username,
+      empresa, inicio, fin, puesto
+    });
+}
+
+// --- FORMACIÓN ACADÉMICA ---
+
+function initializeAcademicSection() {
+  document.querySelector('#academicForm input[name="username"]').value = currentUser.username;
+  loadAcademic();
+}
+
+let _acadCache = [];
+function loadAcademic() {
+  google.script.run
+    .withSuccessHandler(entries => {
+      _acadCache = entries;
+      const table = document.getElementById('academicTable');
+      let html = `<thead>
+        <tr>
+          <th>Nivel</th><th>Institución</th><th>Ingreso</th><th>Egreso</th><th>Acciones</th>
+        </tr>
+      </thead><tbody>`;
+
+      if (entries.length === 0) {
+        html += `<tr><td colspan="5">No hay datos.</td></tr>`;
+      } else {
+        entries.forEach((e,i) => {
+          html += `<tr data-idx="${i}" data-ts="${e._ts}">
+            <td>${e.Nivel}</td>
+            <td>${e.Institucion}</td>
+            <td>${e.Ingreso}</td>
+            <td>${e.Egreso}</td>
+            <td>
+              <button class="btn-primary" onclick="startEditAcademic(this,${i})">Editar</button>
+            </td>
+          </tr>`;
+        });
+      }
+      html += `</tbody>`;
+      table.innerHTML = html;
+    })
+    .getUserAcademic(currentUser.username);
+}
+
+// Formación académica
+function uploadAcademic() {
+  const form = document.getElementById('academicForm');
+  const msg  = document.getElementById('academicMsg');
+  msg.innerText = '';
+
+  // 1) Obtenemos valores
+  const nivel       = form.querySelector('input[name="nivel"]').value.trim();
+  const institucion = form.querySelector('input[name="institucion"]').value.trim();
+  const ingreso     = form.querySelector('input[name="ingreso"]').value;
+  const egreso      = form.querySelector('input[name="egreso"]').value;
+
+  // 2) Validación básica
+  if (!nivel || !institucion || !ingreso || !egreso) {
+    msg.style.color = '#e74c3c';
+    msg.innerText = 'Por favor, completa todos los campos.';
+    return;
+  }
+
+  // 3) Llamamos al servidor
+  msg.style.color = '#333';
+  msg.innerText = 'Guardando…';
+  google.script.run
+    .withSuccessHandler(res => {
+      msg.style.color = 'green';
+      msg.innerText = res;
+      form.reset();
+      form.querySelector('input[name="username"]').value = currentUser.username;
+      loadAcademic();
+      setTimeout(() => msg.innerText = '', 4000);
+    })
+    .withFailureHandler(err => {
+      msg.style.color = '#e74c3c';
+      msg.innerText = 'Error: ' + err.message;
+    })
+    .uploadAcademic({
+      username:    currentUser.username,
+      nivel,
+      institucion,
+      ingreso,
+      egreso
+    });
+}
+
+function startEditAcademic(btn, idx) {
+  const tr = btn.closest('tr');
+  const e  = _acadCache[idx];
+  tr.innerHTML = `
+    <td><input type="text" id="edit_nivel"       value="${e.Nivel}"></td>
+    <td><input type="text" id="edit_institucion" value="${e.Institucion}"></td>
+    <td><input type="date" id="edit_ingreso"     value="${formatDateForInput(e.Ingreso)}"></td>
+    <td><input type="date" id="edit_egreso"      value="${formatDateForInput(e.Egreso)}"></td>
+    <td>
+      <button class="btn-success" onclick="saveEditAcademic(${idx})">Guardar</button>
+      <button class="btn-cancel"  onclick="loadAcademic()">Cancelar</button>
+    </td>
+  `;
+}
+
+function saveEditAcademic(idx) {
+  const ts = document
+    .querySelector(`#academicTable tr[data-idx="${idx}"]`)
+    .getAttribute('data-ts');
+
+  const payload = {
+    username:    currentUser.username,
+    _ts:         ts,
+    nivel:       document.getElementById('edit_nivel').value,
+    institucion: document.getElementById('edit_institucion').value,
+    ingreso:     document.getElementById('edit_ingreso').value,
+    egreso:      document.getElementById('edit_egreso').value
+  };
+
+  // muestro “Guardando…”
+  const cell = event.target;
+  cell.textContent = 'Guardando…';
+  cell.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(res => {
+      loadAcademic();
+    })
+    .withFailureHandler(err => {
+      alert('Error al actualizar: ' + err.message);
+    })
+    .updateAcademic(payload);
+}
+
+// Al inicializar la página, también la sección académica
+document.addEventListener('DOMContentLoaded', function() {
+  initializeAcademicSection();
+});
+
+function togglePwForm() {
+  const f = document.getElementById('pwForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+
+// Muestra u oculta el modal de cambiar contraseña
+function toggleChangePwdModal(show = true) {
+  const m = document.getElementById('modalChangePwd');
+  m.style.display = show ? 'flex' : 'none';
+  if (show) {
+    // inyecta el username actual
+    document.querySelector('#changePwdForm input[name="username"]').value = currentUser.username;
+    document.getElementById('changePwdMsg').innerText = '';
+    document.getElementById('changePwdForm').newPassword.value = '';
+    document.getElementById('changePwdForm').confirmPassword.value = '';
+  }
+}
+
+// Envía el formulario al servidor
+function submitChangePwd() {
+  const form = document.getElementById('changePwdForm');
+  const data = Object.fromEntries(new FormData(form));
+  const msg = document.getElementById('changePwdMsg');
+
+  if (data.newPassword !== data.confirmPassword) {
+    return msg.innerText = 'Las contraseñas no coinciden.';
+  }
+  msg.innerText = 'Guardando…';
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        msg.style.color = 'green';
+        msg.innerText = 'Contraseña actualizada.';
+        setTimeout(() => toggleChangePwdModal(false), 1500);
+      } else {
+        msg.style.color = '#e74c3c';
+        msg.innerText = 'Error: ' + res.message;
+      }
+    })
+    .withFailureHandler(err => {
+      msg.style.color = '#e74c3c';
+      msg.innerText = 'Comunicación fallida: ' + err.message;
+    })
+    .changePassword({ username: data.username, newPassword: data.newPassword });
+}
+
+
+// Carga de sección de documentos administrativos
+// 1) Subir Admin Doc
+  /**
+ * @param {{username: string, documentName: string, file: {base64: string, mimeType: string, name: string}}} form
+ * @param {string=} updatingName  Nombre del documento a reemplazar (en caso de update)
+ * @returns {string} URL de vista del archivo en Drive
+ */
+function uploadAdminDoc() {
+  const form = document.getElementById('adminDocForm');
+  const msg  = document.getElementById('adminDocMsg');
+  msg.innerText = '';
+
+  // Validación mínima
+  const docName = form.querySelector('select[name="documentName"]').value;
+  const fileInput = form.querySelector('input[type="file"]');
+  if (!docName || !fileInput.files.length) {
+    msg.style.color = '#e74c3c';
+    msg.innerText = 'Selecciona un tipo de documento y un archivo.';
+    return;
+  }
+
+  // Leemos el archivo
+  const reader = new FileReader();
+  reader.onload = e => {
+    const payload = {
+      username:     currentUser.username,
+      documentName: docName,
+      file: {
+        base64:   e.target.result.split(',')[1],
+        mimeType: fileInput.files[0].type,
+        name:     fileInput.files[0].name
+      }
+    };
+
+    // Llamada al servidor
+    google.script.run
+      .withSuccessHandler(url => {
+        msg.style.color = 'green';
+        msg.innerText = 'Documento subido con éxito';
+        form.reset();
+        form.querySelector('input[name="username"]').value = currentUser.username;
+        loadAdminDocuments();
+        setTimeout(() => msg.innerText = '', 4000);
+      })
+      .withFailureHandler(err => {
+        msg.style.color = '#e74c3c';
+        msg.innerText = 'Error: ' + err.message;
+      })
+      .uploadAdminDoc(payload);  // Esta SÍ vive en tu .gs
+  };
+  reader.readAsDataURL(fileInput.files[0]);
+}
+
+
+/** Helper: busca o crea carpeta hija */
+function getOrCreate(parent, name) {
+  const it = parent.getFoldersByName(name);
+  return it.hasNext() ? it.next() : parent.createFolder(name);
+}
+
+  // 2) Cargar lista de AdminDocs
+  function loadAdminDocuments() {
+  const isAdmin = currentUser.role === 'admin';
+
+  google.script.run
+    .withSuccessHandler(docs => {
+      const table = document.getElementById('adminDocsTable');
+      // 1) Cabecera con "Acciones" sólo para admin
+      let html = `<thead>
+                    <tr>
+                      <th>Documento</th>
+                      <th>Fecha</th>
+                      <th>URL</th>
+                      ${isAdmin ? '<th>Acciones</th>' : ''}
+                    </tr>
+                  </thead><tbody>`;
+
+      // 2) Filas
+      if (docs.length) {
+        docs.forEach(d => {
+
+           // --- preview en lugar de download ---
+                const match   = (d.URL || '').match(/id=([^&]+)/);
+                const fileId  = match ? match[1] : null;
+                const preview = fileId
+                  ? `https://drive.google.com/file/d/${fileId}`
+                  : d.URL;
+                // ----------------------------------------
+                html += `<tr data-doc="${d.Nombre}">
+                          <td>${d.Nombre}</td>
+                          <td>${d.Fecha}</td>
+                          <td><a href="${preview}" target="_blank">Ver</a></td>
+                          ${isAdmin
+                            ? `<td>
+                                  <button class="btn-update"
+                                          onclick="showInlineAdminUpdate(this,'${d.Nombre}')">
+                                    Actualizar
+                                  </button>
+                                </td>`
+                            : ''}
+                        </tr>`;
+              });
+            } else {
+              html += `<tr><td colspan="${isAdmin ? 4 : 3}">No hay documentos.</td></tr>`;
+            }
+            html += `</tbody>`;
+            table.innerHTML = html;
+
+      // 3) Si no eres admin, inhabilita cualquier botón por si acaso
+      if (!isAdmin) {
+        table.querySelectorAll('button').forEach(b => b.disabled = true);
+      }
+
+      // ← Aquí, justo después de renderizar la tabla, deshabilitamos
+      //    en el formulario las opciones ya subidas:
+      const select = document.querySelector('#adminDocForm select[name="documentName"]');
+      if (select) {
+        // 3.1 Reactiva todas primero
+        Array.from(select.options).forEach(o => o.disabled = false);
+        // 3.2 Deshabilita las que ya existen en `docs`
+        docs.forEach(d => {
+          const opt = select.querySelector(`option[value="${d.Nombre}"]`);
+          if (opt) opt.disabled = true;
+        });
+      }
+
+    })
+    .getUserAdminDocuments(currentUser.username);
+}
+
+
+function showInlineAdminUpdate(btn, docName) {
+  // elimina formulario previo
+  const prev = document.querySelector('#adminDocsTable tr.update-row');
+  if (prev) prev.remove();
+
+  const tr = btn.closest('tr');
+  const updateRow = document.createElement('tr');
+  updateRow.classList.add('update-row');
+  updateRow.innerHTML = `
+    <td colspan="3">
+      <form onsubmit="event.preventDefault(); inlineAdminUpdate('${docName}', this)">
+        <input type="file" name="file" accept=".pdf,.jpg,.png" required>
+        <button type="submit" class="btn-update">Guardar</button>
+        <button type="button" class="btn-cancel" onclick="this.closest('tr').remove()">Cancelar</button>
+      </form>
+      <span class="update-msg"></span>
+    </td>
+    <td></td> <!-- celda vacía para alinear -->
+  `;
+  tr.parentNode.insertBefore(updateRow, tr.nextSibling);
+}
+
+function inlineAdminUpdate(oldName, form) {
+  const fileInput = form.querySelector('input[type=file]');
+  const msg = form.nextElementSibling;
+  if (!fileInput.files.length) return msg.textContent = 'Selecciona un archivo.';
+  msg.textContent = 'Actualizando…';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const fileData = {
+      base64:   e.target.result.split(',')[1],
+      mimeType: fileInput.files[0].type,
+      name:     fileInput.files[0].name
+    };
+    const payload = {
+      username:     currentUser.username,
+      documentName: oldName,
+      file:         fileData             // <<– aquí
+    };
+    google.script.run
+      .withSuccessHandler(() => {
+        msg.textContent = '¡Actualizado!';
+        loadAdminDocuments();
+      })
+      .withFailureHandler(err => msg.textContent = 'Error: ' + err.message)
+      .uploadAdminDoc(payload, oldName);  // el segundo argumento es updatingName
+  };
+  reader.readAsDataURL(fileInput.files[0]);
+}
+
+
+// Se ejecuta al cargar la página
+function initAdmin() {
+  // Lee el hash #view (si el usuario refresca o usa el enlace)
+  const view = window.location.hash.replace('#', '') || 'dashboard';
+  navigateTo(view);
+}
+
+// Muestra la vista solicitada y oculta el resto
+function navigateTo(viewId) {
+  document.querySelectorAll('.admin-view').forEach(el => el.style.display = 'none');
+  const vista = document.getElementById(viewId);
+  if (vista) {
+    vista.style.display = 'block';
+    // Actualiza el hash para permitir Back/Forward del navegador
+    window.location.hash = viewId;
+  }
+}
+
+// Vuelve al panel principal sin recargar
+function volverDashboard() {
+  navigateTo('dashboard');
+}
+
+
+
+    </script>
