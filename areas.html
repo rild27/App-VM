@@ -1,0 +1,41 @@
+<section id="areas">
+  <h2>Gestión de Áreas</h2>
+  <form id="areaForm" onsubmit="event.preventDefault(); saveArea();">
+    <input name="id" placeholder="ID" required>
+    <input name="name" placeholder="Nombre" required>
+    <input name="type" placeholder="Tipo">
+    <input name="description" placeholder="Descripción">
+    <button type="submit">Guardar</button>
+  </form>
+  <table id="areasTable">
+    <thead><tr><th>ID</th><th>Nombre</th><th>Tipo</th><th>Desc</th><th>Acciones</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+<script>
+  function loadAreas(){
+    google.script.run.withSuccessHandler(areas=>{
+      const tbody = document.querySelector('#areasTable tbody');
+      tbody.innerHTML = '';
+      areas.forEach(a=>{
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>${a.ID}</td><td>${a.Nombre}</td><td>${a.Tipo}</td><td>${a.Descripción}</td>
+            <td>
+              <button onclick="editArea('${a.ID}')">✏️</button>
+              <button onclick="deleteArea('${a.ID}')">🗑️</button>
+            </td>
+          </tr>`);
+      });
+    }).getAllAreas();
+  }
+  function saveArea(){
+    const f=Object.fromEntries(new FormData(document.getElementById('areaForm')));
+    google.script.run.withSuccessHandler(loadAreas).addArea(f);
+  }
+  function editArea(id){/* cargar en form y luego updateArea */ }
+  function deleteArea(id){
+    google.script.run.withSuccessHandler(loadAreas).deleteArea(id);
+  }
+  document.addEventListener('DOMContentLoaded', loadAreas);
+</script>
