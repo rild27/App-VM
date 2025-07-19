@@ -349,10 +349,10 @@ function getUserWorkExperience(username) {
       // Construcción legible de "Tiempo"
       var t = '';
       if (y > 0 && m > 0) {
-        t = y + ' año' + (y > 1 ? 'es' : '') + ' y ' +
+        t = y + ' año' + (y > 1 ? 's' : '') + ' y ' +
             m + ' mes' + (m > 1 ? 'es' : '');
       } else if (y > 0) {
-        t = y + ' año' + (y > 1 ? 'es' : '');
+        t = y + ' año' + (y > 1 ? 's' : '');
       } else if (m > 0) {
         t = m + ' mes' + (m > 1 ? 'es' : '');
       } else {
