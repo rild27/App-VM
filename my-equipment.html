@@ -1,0 +1,25 @@
+<section id="myEquipment">
+  <h2>Mis Equipos</h2>
+  <table>
+    <thead><tr><th>Nombre</th><th>Próx. Mto.</th><th>Acción</th></tr></thead>
+    <tbody id="myEqBody"></tbody>
+  </table>
+</section>
+<script>
+  function loadMyEquip(){
+    // primero obtén las áreas del usuario logueado (desde sessionStorage)
+    const user = JSON.parse(sessionStorage.getItem('currentUser')).username;
+    google.script.run
+      .withSuccessHandler(eqs=>{
+        const b=document.getElementById('myEqBody'); b.innerHTML='';
+        eqs.forEach(e=> b.insertAdjacentHTML('beforeend',`
+          <tr>
+            <td>${e.Nombre}</td>
+            <td>${e.NextPreventDate||'N/A'}</td>
+            <td><button onclick="openMaintModal('${e.ID}')">Registrar Mto.</button></td>
+          </tr>`));
+      })
+      .getMyEquipment(user);
+  }
+  document.addEventListener('DOMContentLoaded', loadMyEquip);
+</script>
