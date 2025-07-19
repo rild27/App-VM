@@ -1,0 +1,66 @@
+<!-- shared.html -->
+<script>
+      // Ámbito global: DEFINIMOS showSection ANTES de tu <nav>
+      function showSection(id) {
+        const target = document.getElementById(id);
+        if (!target) return;              // si no existe la sección, salimos
+
+        // Ocultamos TODAS las secciones
+        document.querySelectorAll('main > section').forEach(s => {
+          s.style.display = 'none';
+        });
+
+        // Mostramos la que pedimos
+        target.style.display = 'block';
+
+        // Y cargamos su contenido:
+        switch (id) {
+          case 'profile':
+            // render en modo visualización
+            renderProfile(false);
+            break;
+          case 'personalDocs':
+            loadPersonalDocuments();
+            break;
+          case 'adminDocs':
+            loadAdminDocuments();
+            break;
+          case 'workExperience':
+            loadWorkExperience();
+            break;
+          case 'academic':
+            loadAcademic();
+            break;
+          case 'caps':
+            loadDocuments();
+            break;
+          case 'myEquipment':
+            loadMyEquipment();
+            break;
+          case 'maintenance':
+            // podrías necesitar algún loadMaintenance()
+            loadMaintenanceForUser();
+        break;
+        }
+      
+      /**
+       * Navega “rompiendo” cualquier iframe/embedding
+       */
+      function irA(url) {
+        window.open(url, '_top');
+      }
+
+      if (id === 'adminDocs') {
+          // asigna username al form
+          document.querySelector('#adminDocForm input[name="username"]').value = currentUser.username;
+          // si eres admin, muestra el form; si no, lo oculta
+          document.getElementById('adminDocForm').style.display =
+            currentUser.role === 'admin' ? 'block' : 'none';
+          loadAdminDocuments();
+        }
+      }
+
+      function goAdmin() {
+        window.top.location.href = '<?= ScriptApp.getService().getUrl() ?>?page=admin';
+      }
+    </script>
